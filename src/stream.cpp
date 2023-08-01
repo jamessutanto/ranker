@@ -41,18 +41,30 @@
 /*  5. Absolutely no warranty is expressed or implied.                   */
 /*-----------------------------------------------------------------------*/
 #include "stream.h"
+#include "variorum_parser.hpp"
 
 #include <float.h>
 #include <stdlib.h>
 #include <omp.h>
 #include <array>
+#include <random>
 
+#ifndef STREAM_ARRAY_SIZE
+#define STREAM_ARRAY_SIZE 100000000
+#endif
 
-#define STREAM_ARRAY_SIZE 10000000
-
+#ifdef NTIMES
+#if NTIMES <= 1
 #define NTIMES 10
+#endif
+#endif
+#ifndef NTIMES
+#define NTIMES 10
+#endif
 
+#ifndef OFFSET
 #define OFFSET 0
+#endif
 
 #define HLINE "-------------------------------------------------------------\n"
 
@@ -67,11 +79,11 @@
 #define STREAM_TYPE double
 #endif
 
-static std::array<STREAM_TYPE,STREAM_ARRAY_SIZE + OFFSET>  a,b,c;
+static std::array<STREAM_TYPE, STREAM_ARRAY_SIZE + OFFSET> a, b, c;
 
 static std::array<double, 4> avgtime = {0},
-							maxtime = {0}, 
-							mintime = {FLT_MAX,FLT_MAX,FLT_MAX,FLT_MAX};
+							 maxtime = {0},
+							 mintime = {FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX};
 /*
 static char label[4][12] = {"Copy:      ", "Scale:     ",
 						 "Add:       ", "Triad:     "};
@@ -90,14 +102,9 @@ extern void checkSTREAMresults();
 extern int omp_get_num_threads();
 #endif
 
-/*
-
-*/
-
-
-/* void s_setup(FILE* file)
+void s_setup(FILE *file)
 {
-	// --- SETUP --- determine precision and check timing --- 
+	// --- SETUP --- determine precision and check timing ---
 
 	fprintf(file, HLINE);
 	fprintf(file, "STREAM version $Revision: 5.10 $\n");
@@ -119,15 +126,17 @@ extern int omp_get_num_threads();
 	fprintf(file, " will be used to compute the reported bandwidth.\n");
 	fprintf(file, HLINE);
 	fflush(file);
-} */
+}
 
-void s_main(std::array<double,4> result)
+void s_main(std::array<double, 3> &result, const std::string &node, const std::string &socket)
 {
+	s_setup(stdout);
 	int quantum, checktick();
 	int k;
 	ssize_t j;
 	STREAM_TYPE scalar;
-	double t, times[4][NTIMES];
+	double t, times[4][NTIMES], energy[NTIMES];
+	double usage = 0;
 
 #ifdef _OPENMP
 	printf(HLINE);
@@ -150,13 +159,11 @@ void s_main(std::array<double,4> result)
 	printf("Number of Threads counted = %i\n", k);
 #endif
 
-	/* Get initial value for system clock. */
+	// Get initial value for system clock.
 #pragma omp parallel for
 	for (j = 0; j < STREAM_ARRAY_SIZE; j++)
 	{
 		a[j] = 1.0;
-		b[j] = 2.0;
-		c[j] = 0.0;
 	}
 
 	// printf(HLINE);
@@ -187,7 +194,9 @@ void s_main(std::array<double,4> result)
 // Copy
 #pragma omp parallel for
 		for (j = 0; j < STREAM_ARRAY_SIZE; j++)
+		{
 			c[j] = a[j];
+		}
 
 		times[0][k] = mysecond() - times[0][k];
 
@@ -195,7 +204,9 @@ void s_main(std::array<double,4> result)
 // Scale
 #pragma omp parallel for
 		for (j = 0; j < STREAM_ARRAY_SIZE; j++)
+		{
 			b[j] = scalar * c[j];
+		}
 
 		times[1][k] = mysecond() - times[1][k];
 
@@ -203,22 +214,31 @@ void s_main(std::array<double,4> result)
 // Add
 #pragma omp parallel for
 		for (j = 0; j < STREAM_ARRAY_SIZE; j++)
+		{
 			c[j] = a[j] + b[j];
+		}
 
 		times[2][k] = mysecond() - times[2][k];
+
+		record_power("stream_triad_"+node, "w");
 
 		times[3][k] = mysecond();
 // Triad
 #pragma omp parallel for
 		for (j = 0; j < STREAM_ARRAY_SIZE; j++)
+		{
 			a[j] = b[j] + scalar * c[j];
+		}
 
 		times[3][k] = mysecond() - times[3][k];
+
+		record_power("stream_triad_"+node, "a");
+
+		energy[k] = parse_poll_power_dram("stream_triad_"+node, socket);
 	}
+	//	--- SUMMARY ---
 
-	/*	--- SUMMARY --- */
-
-	for (k = 1; k < NTIMES; k++) /* note -- skip first iteration */
+	for (k = 1; k < NTIMES; k++) // note -- skip first iteration
 	{
 		for (j = 0; j < 4; j++)
 		{
@@ -226,25 +246,24 @@ void s_main(std::array<double,4> result)
 			mintime[j] = MIN(mintime[j], times[j][k]);
 			maxtime[j] = MAX(maxtime[j], times[j][k]);
 		}
+		usage = usage + energy[k];
 	}
+
+	result[1] = avgtime[3] / (double)(NTIMES - 1); // Avg time
+	result[0] = 1.0E-06 * bytes[3] / result[1];	   // Avg bandwith
+	result[2] = usage / (double)(NTIMES - 1);	   // Avg usage
 
 	// printf("Function    Best Rate MB/s  Avg time     Min time     Max time\n");
 	for (j = 0; j < 4; j++)
 	{
 		avgtime[j] = avgtime[j] / (double)(NTIMES - 1);
-		result[j] = 1.0E-06 * bytes[j] / mintime[j];
 
-				printf("%s%12.1f  %11.6f  %11.6f  %11.6f\n", "id",//Need Id
-					   1.0E-06 * bytes[j] / mintime[j],
-					   avgtime[j],
-					   mintime[j],
-					   maxtime[j]);
-		
+		printf("%s%12.1f  %11.6f  %11.6f  %11.6f\n", "id", // Need Id
+			   1.0E-06 * bytes[j] / avgtime[j],
+			   avgtime[j],
+			   mintime[j],
+			   maxtime[j]);
 	}
-	// printf(HLINE);
-
-	/* --- Check Results --- */
-	checkSTREAMresults();
 }
 
 #define M 20
@@ -294,140 +313,50 @@ double mysecond()
 	return ((double)tp.tv_sec + (double)tp.tv_usec * 1.e-6);
 }
 
-#ifndef abs
-#define abs(a) ((a) >= 0 ? (a) : -(a))
-#endif
-void checkSTREAMresults()
+int main(int argc, char *argv[])
 {
-	STREAM_TYPE aj, bj, cj, scalar;
-	STREAM_TYPE aSumErr, bSumErr, cSumErr;
-	STREAM_TYPE aAvgErr, bAvgErr, cAvgErr;
-	double epsilon;
-	ssize_t j;
-	int k, ierr, err;
-
-	/* reproduce initialization */
-	aj = 1.0;
-	bj = 2.0;
-	cj = 0.0;
-	/* a[] is modified during timing check */
-	aj = 2.0E0 * aj;
-	/* now execute timing loop */
-	scalar = 3.0;
-	for (k = 0; k < NTIMES; k++)
+	if (argc < 5)
 	{
-		cj = aj;
-		bj = scalar * cj;
-		cj = aj + bj;
-		aj = bj + scalar * cj;
+		std::cerr << "Need argument : <Node Id> <Socket Id> <Number of threads> <result file path>" << std::endl;
+		return 1;
 	}
 
-	/* accumulate deltas between observed and expected results */
-	aSumErr = 0.0;
-	bSumErr = 0.0;
-	cSumErr = 0.0;
-	for (j = 0; j < STREAM_ARRAY_SIZE; j++)
-	{
-		aSumErr += abs(a[j] - aj);
-		bSumErr += abs(b[j] - bj);
-		cSumErr += abs(c[j] - cj);
-		// if (j == 417) printf("Index 417: c[j]: %f, cj: %f\n",c[j],cj);	// MCCALPIN
-	}
-	aAvgErr = aSumErr / (STREAM_TYPE)STREAM_ARRAY_SIZE;
-	bAvgErr = bSumErr / (STREAM_TYPE)STREAM_ARRAY_SIZE;
-	cAvgErr = cSumErr / (STREAM_TYPE)STREAM_ARRAY_SIZE;
+	std::string node = argv[1];
+	std::string socket = argv[2];
+	std::string ncore = argv[3];
 
-	if (sizeof(STREAM_TYPE) == 4)
+	// Create csv file for the result
+	FILE *file = fopen(argv[5], "a");
+	if (file == NULL)
 	{
-		epsilon = 1.e-6;
-	}
-	else if (sizeof(STREAM_TYPE) == 8)
-	{
-		epsilon = 1.e-13;
-	}
-	else
-	{
-		printf("WEIRD: sizeof(STREAM_TYPE) = %lu\n", sizeof(STREAM_TYPE));
-		epsilon = 1.e-6;
+		std::cerr << "Error opening file." << std::endl;
+		return -1;
 	}
 
-	err = 0;
-	if (abs(aAvgErr / aj) > epsilon)
+	// go to the end of file
+	fseek(file, 0, SEEK_END);
+
+	// print header if not printed yet
+	if (ftell(file) == 0)
 	{
-		err++;
-		printf("Failed Validation on array a[], AvgRelAbsErr > epsilon (%e)\n", epsilon);
-		printf("     Expected Value: %e, AvgAbsErr: %e, AvgRelAbsErr: %e\n", aj, aAvgErr, abs(aAvgErr) / aj);
-		ierr = 0;
-		for (j = 0; j < STREAM_ARRAY_SIZE; j++)
-		{
-			if (abs(a[j] / aj - 1.0) > epsilon)
-			{
-				ierr++;
-#ifdef VERBOSE
-				if (ierr < 10)
-				{
-					printf("         array a: index: %ld, expected: %e, observed: %e, relative error: %e\n",
-						   j, aj, a[j], abs((aj - a[j]) / aAvgErr));
-				}
-#endif
-			}
-		}
-		printf("     For array a[], %d errors were found.\n", ierr);
+		fprintf(file, "NodeId, SocketId, StaticPowerUsage(W), NumberOfThreads, MemoryUsage(MiB), Time(S), Bandwidth(MB/s), DynamicPowerUsage(W), AccessFrequency, Efficiency(MB/J)\n");
+		fflush(file);
 	}
-	if (abs(bAvgErr / bj) > epsilon)
-	{
-		err++;
-		printf("Failed Validation on array b[], AvgRelAbsErr > epsilon (%e)\n", epsilon);
-		printf("     Expected Value: %e, AvgAbsErr: %e, AvgRelAbsErr: %e\n", bj, bAvgErr, abs(bAvgErr) / bj);
-		printf("     AvgRelAbsErr > Epsilon (%e)\n", epsilon);
-		ierr = 0;
-		for (j = 0; j < STREAM_ARRAY_SIZE; j++)
-		{
-			if (abs(b[j] / bj - 1.0) > epsilon)
-			{
-				ierr++;
-#ifdef VERBOSE
-				if (ierr < 10)
-				{
-					printf("         array b: index: %ld, expected: %e, observed: %e, relative error: %e\n",
-						   j, bj, b[j], abs((bj - b[j]) / bAvgErr));
-				}
-#endif
-			}
-		}
-		printf("     For array b[], %d errors were found.\n", ierr);
-	}
-	if (abs(cAvgErr / cj) > epsilon)
-	{
-		err++;
-		printf("Failed Validation on array c[], AvgRelAbsErr > epsilon (%e)\n", epsilon);
-		printf("     Expected Value: %e, AvgAbsErr: %e, AvgRelAbsErr: %e\n", cj, cAvgErr, abs(cAvgErr) / cj);
-		printf("     AvgRelAbsErr > Epsilon (%e)\n", epsilon);
-		ierr = 0;
-		for (j = 0; j < STREAM_ARRAY_SIZE; j++)
-		{
-			if (abs(c[j] / cj - 1.0) > epsilon)
-			{
-				ierr++;
-#ifdef VERBOSE
-				if (ierr < 10)
-				{
-					printf("         array c: index: %ld, expected: %e, observed: %e, relative error: %e\n",
-						   j, cj, c[j], abs((cj - c[j]) / cAvgErr));
-				}
-#endif
-			}
-		}
-		printf("     For array c[], %d errors were found.\n", ierr);
-	}
-	if (err == 0)
-	{
-		printf("Solution Validates: avg error less than %e on all three arrays\n", epsilon);
-	}
-#ifdef VERBOSE
-	// printf ("Results Validation Verbose Results: \n");
-	// printf ("    Expected a(1), b(1), c(1): %f %f %f \n",aj,bj,cj);
-	// printf ("    Observed a(1), b(1), c(1): %f %f %f \n",a[1],b[1],c[1]);
-	printf("    Rel Errors on a, b, c:     %e %e %e \n", abs(aAvgErr / aj), abs(bAvgErr / bj), abs(cAvgErr / cj));
-#endif
+
+	std::array<double, 3> result{0};
+	// MAIN
+	s_main(result, node, socket);
+
+	double idle_power = stod(std::string(argv[4])) * result[1];
+	double dynamic_power = result[2] - idle_power;
+
+	double memory = 3 * sizeof(STREAM_TYPE) * ((double)STREAM_ARRAY_SIZE / 1024.0 / 1024.0);
+
+	// NodeId, SocketId, StaticPowerUsage(W), NumberOfThreads, MemoryUsage(MiB), Time(S), Bandwidth(MB/s), DynamicPowerUsage(W), AccessFrequency, Efficiency(MB/J)
+	fprintf(file, "%s,%s,%f,%s,%.1f,%.6f,%.5f,%.5f,%d,%.5f\n", node.c_str(), socket.c_str(), idle_power, ncore.c_str(), memory,
+			result[1], result[0], dynamic_power, static_cast<int>(result[0] / ((double)sizeof(STREAM_TYPE) / 1000000)), result[0] / dynamic_power);
+	fflush(file);
+
+	fclose(file);
+	return 0;
 }
