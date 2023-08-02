@@ -111,7 +111,7 @@ double parse_poll_power_pkg(const std::string &node, const std::string &socket)
     fgets(initial, sizeof(initial), power);
 
     std::string hd = std::string(header);
-    std::string a = std::string(initial);
+    std::string a;
     std::string b;
 
     // Header not printed
@@ -169,6 +169,9 @@ double parse_poll_power_pkg(const std::string &node, const std::string &socket)
         pos1++;
         pos2++;
     }
+
+    std::cout << a << std::endl;
+    std::cout << b << std::endl;
 
     // Sum usage of all sockets for node level
     if (socket == "-")
@@ -273,7 +276,9 @@ double parse_poll_power_dram(const std::string &node, const std::string &socket)
         pos2++;
     }
 
-    // std::cout << a.substr(start_time1, end_time1 - start_time1) << std::endl;
+    std::cout << a << std::endl;
+    std::cout << b << std::endl;
+    
     double time = stod(a.substr(start_time1, end_time1 - start_time1)) - stod(b.substr(start_time2, end_time2 - start_time2));
     time = time / 1000;
 
@@ -318,7 +323,7 @@ std::vector<double> parse_poll_power_idle(const std::string &node)
     fgets(initial, sizeof(initial), power);
 
     std::string hd = std::string(header);
-    std::string a = std::string(initial);
+    std::string a;
     std::string b;
 
     // Header not printed
@@ -391,6 +396,9 @@ std::vector<double> parse_poll_power_idle(const std::string &node)
 
     double time = stod(b.substr(start_time2, end_time2 - start_time2)) - stod(a.substr(start_time1, end_time1 - start_time1));
     time = time / 1000;
+
+    std::cout << a << std::endl;
+    std::cout << b << std::endl;
 
     for (size_t i = 0; i < start1.size(); i++)
     {

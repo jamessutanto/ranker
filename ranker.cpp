@@ -27,6 +27,133 @@ int get_socket_power_limit();
 
 int get_node_power_limit();
 
+struct Row
+{
+    std::vector<std::string> columns;
+};
+
+std::istream &operator>>(std::istream &str, Row &data)
+{
+    data.columns.clear();
+
+    std::string line;
+    std::getline(str, line);
+    std::stringstream stream(line);
+    std::string cell;
+
+    while (std::getline(stream, cell, ','))
+        data.columns.push_back(cell);
+
+    return str;
+}
+
+bool compare_rows(const Row &r1, const Row &r2)
+{
+    return std::stod(r1.columns.back()) < std::stod(r2.columns.back());
+}
+
+bool compare_rows_reverse(const Row &r1, const Row &r2)
+{
+    return std::stod(r1.columns.back()) > std::stod(r2.columns.back());
+}
+
+void to_vector(const std::string &filename, std::vector<Row> &local)
+{
+    std::ifstream file;
+    file.open(filename, std::ios::in);
+    if (!file.is_open())
+    {
+        std::cerr << "Error opening file: " << filename << std::endl;
+        MPI_Abort(MPI_COMM_WORLD, 1);
+        return;
+    }
+
+    Row header;
+    file >> header;
+
+    Row row;
+    while (file >> row)
+    {
+        local.push_back(row);
+    }
+
+    file.close();
+}
+
+void combine_dgemm(const std::string &result)
+{
+    std::string run1 = result + "-1.0_all";
+    std::string run2 = result + "-0.7_all";
+    std::string run3 = result + "-0.5_all";
+    std::string run4 = result + "-0.3_all";
+
+    std::vector<Row> v1;
+    std::vector<Row> v2;
+    std::vector<Row> v3;
+    std::vector<Row> v4;
+    to_vector(run1, v1);
+    to_vector(run2, v2);
+    to_vector(run3, v3);
+    to_vector(run4, v4);
+
+    std::string header = "NodeId, SocketId, ThreadId, TotalStaticEnergyUsage(J), TotalTime(S), TotalDynamicEnergyUsage(J)\n";
+
+    std::vector<Row> combined;
+
+    for (size_t i = 0; i < v1.size(); i++)
+    {
+        Row r;
+        r.columns.push_back(v1[i].columns[0]); // NodeId
+        r.columns.push_back(v1[i].columns[1]); // SocketId
+        r.columns.push_back(v1[i].columns[2]); // ThreadId
+
+        double static_energy = stod(v1[i].columns[4]); // StaticEnergy
+        static_energy += stod(v2[i].columns[4]);
+        static_energy += stod(v3[i].columns[4]);
+        static_energy += stod(v4[i].columns[4]);
+        r.columns.push_back(std::to_string(static_energy));
+
+        double time = stod(v1[i].columns[5]); // Time
+        time += stod(v2[i].columns[5]);
+        time += stod(v3[i].columns[5]);
+        time += stod(v4[i].columns[5]);
+        r.columns.push_back(std::to_string(time));
+
+        double dynamic_energy = stod(v1[i].columns[6]); // DynamicEnergy
+        dynamic_energy += stod(v2[i].columns[6]);
+        dynamic_energy += stod(v3[i].columns[6]);
+        dynamic_energy += stod(v4[i].columns[6]);
+        r.columns.push_back(std::to_string(dynamic_energy));
+
+        combined.push_back(r);
+    }
+
+    std::sort(combined.begin(), combined.end(), compare_rows);
+
+    std::ofstream out_stream(result, ios::out | ios::trunc);
+    if (!out_stream)
+    {
+        std::cerr << "Error opening file" << std::endl;
+    }
+
+    out_stream << header;
+
+    for (const Row r : combined)
+    {
+        for (size_t i = 0; i < r.columns.size(); i++)
+        {
+            out_stream << r.columns[i];
+
+            if (i < r.columns.size() - 1)
+                out_stream << ",";
+        }
+        out_stream << "\n";
+    }
+    out_stream.close();
+
+    std::cout << "rank saved in " << result << std::endl;
+}
+
 void rank_dgemm_core(const std::string &result)
 {
     MPI_Init(NULL, NULL);
@@ -62,6 +189,8 @@ void rank_dgemm_core(const std::string &result)
 
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();
+
+    combine_dgemm(result);
 }
 
 void rank_dgemm_socket(const std::string &result)
@@ -99,6 +228,8 @@ void rank_dgemm_socket(const std::string &result)
 
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();
+
+    combine_dgemm(result);
 }
 
 void rank_dgemm_node(const std::string &result)
@@ -136,6 +267,8 @@ void rank_dgemm_node(const std::string &result)
 
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();
+
+    combine_dgemm(result);
 }
 
 void rank_stream_socket(const std::string &result)
@@ -193,9 +326,9 @@ void rank_socket()
 {
     std::filesystem::path cwd = std::filesystem::current_path();
 
-    rank_stream_socket(cwd / "result/ranker_socket_stream");
-    // rank_srandom_socket(cwd / "result/ranker_socket_srandom");
-    // rank_dgemm_socket(cwd / "result/ranker_socket_dgemm");
+    // rank_stream_socket(cwd / "result/ranker_socket_stream");
+    //  rank_srandom_socket(cwd / "result/ranker_socket_srandom");
+    rank_dgemm_socket(cwd / "result/ranker_socket_dgemm");
 
     calculate_rank("socket");
 }
@@ -324,59 +457,6 @@ int execute(const std::string &command, const std::string &arg1, const std::stri
     return 0;
 }
 
-struct Row
-{
-    std::vector<std::string> columns;
-};
-
-std::istream &operator>>(std::istream &str, Row &data)
-{
-    data.columns.clear();
-
-    std::string line;
-    std::getline(str, line);
-    std::stringstream stream(line);
-    std::string cell;
-
-    while (std::getline(stream, cell, ','))
-        data.columns.push_back(cell);
-
-    return str;
-}
-
-bool compare_rows(const Row &r1, const Row &r2)
-{
-    return std::stod(r1.columns.back()) < std::stod(r2.columns.back());
-}
-
-bool compare_rows_reverse(const Row &r1, const Row &r2)
-{
-    return std::stod(r1.columns.back()) > std::stod(r2.columns.back());
-}
-
-void to_vector(const std::string &filename, std::vector<Row> &local)
-{
-    std::ifstream file;
-    file.open(filename, std::ios::in);
-    if (!file.is_open())
-    {
-        std::cerr << "Error opening file: " << filename << std::endl;
-        MPI_Abort(MPI_COMM_WORLD, 1);
-        return;
-    }
-
-    Row header;
-    file >> header;
-
-    Row row;
-    while (file >> row)
-    {
-        local.push_back(row);
-    }
-
-    file.close();
-}
-
 void set_omp(const std::vector<int> &cpu)
 {
     // Transform vector to string for OMP_PLACES
@@ -485,9 +565,21 @@ void run_dgemm(const std::vector<int> &cpu, const int array_size, const std::str
     }
 }
 
-double calculate_efficiency(const std::string &path, const std::string &final)
+void calculate_efficiency(const std::string &path, const std::string &final)
 {
-    return 0;
+    std::vector<Row> data;
+    to_vector(path, data);
+
+    std::string header = "NodeId, SocketId, MemoryUsage(MiB), Time(S), Bandwidth(MB/s), DramPowerUsage(W), AccessFrequency, DramEfficiency(MB/J)\n";
+
+    std::ofstream out_stream(final, ios::out | ios::trunc);
+    if (!out_stream)
+    {
+        std::cerr << "Error opening file" << std::endl;
+        MPI_Abort(MPI_COMM_WORLD, 1);
+    }
+
+    out_stream << header;
 }
 
 void run(const std::string &benchmark, const std::string &level, const std::string &result, const int limit)
@@ -538,12 +630,13 @@ void run(const std::string &benchmark, const std::string &level, const std::stri
 
     // Get Idle power usage
 
-    record_power(result_hostname.c_str(), "w");
+    record_power(result + "_idle", "w");
+    record_power(result + "_idle", "w");
     sleep(2);
-    record_power(result_hostname.c_str(), "a");
+    record_power(result + "_idle", "a");
 
     // pkg0_joules, dram0_watts, pkg1_joules, dram1_watts, ...
-    std::vector<double> idle(parse_poll_power_idle(result_hostname));
+    std::vector<double> idle(parse_poll_power_idle(result + "_idle"));
 
     // Iterate through all the subcomponents
     for (Component *comp : *comps)
@@ -654,7 +747,7 @@ void run(const std::string &benchmark, const std::string &level, const std::stri
             else
             {
                 idle_power = idle[stoi(sId) * 2];
-                if(cId == "-")
+                if (cId == "-")
                     array_size = 1024;
                 else
                     array_size = 512;
@@ -740,7 +833,7 @@ void run(const std::string &benchmark, const std::string &level, const std::stri
 
     for (char *c : all_hostnames)
     {
-        to_vector(result + "_" + level + "_" + benchmark + "_" + std::string(c), final_data);
+        to_vector(result + "_" + std::string(c), final_data);
     }
 
     // Sort and write the data
@@ -750,8 +843,7 @@ void run(const std::string &benchmark, const std::string &level, const std::stri
 
         if (benchmark == "dgemm")
         {
-            std::sort(final_data.begin(), final_data.end(), compare_rows);
-            header = "NodeId, SocketId, ThreadId, PowerLimit(W), Time(S), PkgEnergy(J)\n";
+            header = "NodeId, SocketId, ThreadId, PowerLimit(W), StaticEnergyUsage(J), Time(S), DynamicEnergyUsage(J)\n";
         }
         else if (benchmark == "stream" || benchmark == "srandom")
         {
@@ -759,7 +851,7 @@ void run(const std::string &benchmark, const std::string &level, const std::stri
             header = "NodeId, SocketId, ThreadId, MemoryUsage(MiB), Time(S), Bandwidth(MB/s), DramPowerUsage(W), AccessFrequency, DramEfficiency(MB/J)\n";
         }
 
-        std::ofstream out_stream(result + "_" + level + "_" + benchmark, ios::out | ios::trunc);
+        std::ofstream out_stream(result + "_all", ios::out | ios::trunc);
         if (!out_stream)
         {
             std::cerr << "Error opening file" << std::endl;
@@ -790,7 +882,7 @@ void run(const std::string &benchmark, const std::string &level, const std::stri
 
         out_stream.close();
 
-        std::cout << benchmark << "result saved in " << result << std::endl;
+        std::cout << benchmark << " result saved in " << result << std::endl;
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
