@@ -40,8 +40,8 @@
 /*     program constitutes acceptance of these licensing restrictions.   */
 /*  5. Absolutely no warranty is expressed or implied.                   */
 /*-----------------------------------------------------------------------*/
-#include "stream.h"
-#include "variorum_parser.hpp"
+#include "ranker_aux.hpp"
+#include "PerfEvent.hpp"
 
 #include <float.h>
 #include <stdlib.h>
@@ -55,11 +55,11 @@
 
 #ifdef NTIMES
 #if NTIMES <= 1
-#define NTIMES 10
+#define NTIMES 11
 #endif
 #endif
 #ifndef NTIMES
-#define NTIMES 10
+#define NTIMES 11
 #endif
 
 #ifndef OFFSET
@@ -81,9 +81,9 @@
 
 static std::array<STREAM_TYPE, STREAM_ARRAY_SIZE + OFFSET> a, b, c;
 
-static std::array<double, 4> avgtime = {0},
+/* static std::array<double, 4> avgtime = {0},
 							 maxtime = {0},
-							 mintime = {FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX};
+							 mintime = {FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX}; */
 /*
 static char label[4][12] = {"Copy:      ", "Scale:     ",
 						 "Add:       ", "Triad:     "};
@@ -128,15 +128,14 @@ void s_setup(FILE *file)
 	fflush(file);
 }
 
-void s_main(std::array<double, 3> &result, const std::string &node, const std::string &socket)
+void s_main(const std::string &node, const std::string &socket, std::vector<double> &time, std::vector<double> &energy, std::vector<double> &power)
 {
-	s_setup(stdout);
+	//s_setup(stdout);
 	int quantum, checktick();
 	int k;
 	ssize_t j;
 	STREAM_TYPE scalar;
-	double t, times[4][NTIMES], energy[NTIMES];
-	double usage = 0;
+	double t, times[4][NTIMES];
 
 #ifdef _OPENMP
 	printf(HLINE);
@@ -232,13 +231,17 @@ void s_main(std::array<double, 3> &result, const std::string &node, const std::s
 
 		times[3][k] = mysecond() - times[3][k];
 
+		time.push_back(times[3][k]);
+
 		record_power("stream_triad_"+node, "a");
 
-		energy[k] = parse_poll_power_dram("stream_triad_"+node, socket);
+		std::pair<double, double> parse = parse_poll_power_dram("stream_triad_"+node, socket);
+		energy.push_back(parse.first);
+		power.push_back(parse.second);
 	}
 	//	--- SUMMARY ---
 
-	for (k = 1; k < NTIMES; k++) // note -- skip first iteration
+/* 	for (k = 1; k < NTIMES; k++) // note -- skip first iteration
 	{
 		for (j = 0; j < 4; j++)
 		{
@@ -246,15 +249,10 @@ void s_main(std::array<double, 3> &result, const std::string &node, const std::s
 			mintime[j] = MIN(mintime[j], times[j][k]);
 			maxtime[j] = MAX(maxtime[j], times[j][k]);
 		}
-		usage = usage + energy[k];
-	}
-
-	result[1] = avgtime[3] / (double)(NTIMES - 1); // Avg time
-	result[0] = 1.0E-06 * bytes[3] / result[1];	   // Avg bandwith
-	result[2] = usage / (double)(NTIMES - 1);	   // Avg usage
+	} */
 
 	// printf("Function    Best Rate MB/s  Avg time     Min time     Max time\n");
-	for (j = 0; j < 4; j++)
+/* 	for (j = 0; j < 4; j++)
 	{
 		avgtime[j] = avgtime[j] / (double)(NTIMES - 1);
 
@@ -263,7 +261,7 @@ void s_main(std::array<double, 3> &result, const std::string &node, const std::s
 			   avgtime[j],
 			   mintime[j],
 			   maxtime[j]);
-	}
+	} */
 }
 
 #define M 20
@@ -315,18 +313,19 @@ double mysecond()
 
 int main(int argc, char *argv[])
 {
-	if (argc < 5)
+	if (argc < 7)
 	{
-		std::cerr << "Need argument : <Node Id> <Socket Id> <Number of threads> <result file path>" << std::endl;
+		std::cerr << "Need argument : <Node Id> <Socket Id> <Number of threads> <Cache line size> <result file path>" << std::endl;
 		return 1;
 	}
 
 	std::string node = argv[1];
 	std::string socket = argv[2];
 	std::string ncore = argv[3];
-
+	double cache_line_size = stod(std::string(argv[5]));
+	
 	// Create csv file for the result
-	FILE *file = fopen(argv[5], "a");
+	FILE *file = fopen(argv[6], "a");
 	if (file == NULL)
 	{
 		std::cerr << "Error opening file." << std::endl;
@@ -339,22 +338,44 @@ int main(int argc, char *argv[])
 	// print header if not printed yet
 	if (ftell(file) == 0)
 	{
-		fprintf(file, "NodeId, SocketId, StaticPowerUsage(W), NumberOfThreads, MemoryUsage(MiB), Time(S), Bandwidth(MB/s), DynamicPowerUsage(W), AccessFrequency, Efficiency(MB/J)\n");
+		fprintf(file, "NodeId,SocketId,TotalMemoryRequest(MiB),NumberOfThreads,AvgTime(S),SDTime,Bandwidth(MB/s),SDBandwidth,AvgEnergyUsage(J),SDEnergyUsage,AvgPowerUsage(W),SDPowerUsage,AccessFrequency(line/s),SDAccessFrequency\n");
 		fflush(file);
 	}
 
-	std::array<double, 3> result{0};
+    std::vector<double> time, energy, power_cons;
 	// MAIN
-	s_main(result, node, socket);
+	s_main(node, socket, time, energy, power_cons);
 
-	double idle_power = stod(std::string(argv[4])) * result[1];
-	double dynamic_power = result[2] - idle_power;
+	double memory_request = 3 * sizeof(STREAM_TYPE) * ((double)STREAM_ARRAY_SIZE / 1024.0 / 1024.0);
 
-	double memory = 3 * sizeof(STREAM_TYPE) * ((double)STREAM_ARRAY_SIZE / 1024.0 / 1024.0);
+	// Time
+    double avg_time, sd_time;
+    standard_deviation(time, avg_time, sd_time);
 
-	// NodeId, SocketId, StaticPowerUsage(W), NumberOfThreads, MemoryUsage(MiB), Time(S), Bandwidth(MB/s), DynamicPowerUsage(W), AccessFrequency, Efficiency(MB/J)
-	fprintf(file, "%s,%s,%f,%s,%.1f,%.6f,%.5f,%.5f,%d,%.5f\n", node.c_str(), socket.c_str(), idle_power, ncore.c_str(), memory,
-			result[1], result[0], dynamic_power, static_cast<int>(result[0] / ((double)sizeof(STREAM_TYPE) / 1000000)), result[0] / dynamic_power);
+    // Energy
+    double avg_energy, sd_energy;
+    standard_deviation(energy, avg_energy, sd_energy);
+
+	double avg_power_cons, sd_power_cons;
+	standard_deviation(power_cons, avg_power_cons, sd_power_cons);
+
+	std::vector<double> bandwidth, access_freq;
+	for (size_t i = 1; i < time.size(); i++)
+    {
+		bandwidth.push_back(1.0E-06 * bytes[3]/ time[i]);
+		access_freq.push_back(bandwidth.back()/ (cache_line_size / 1000000));
+    }
+
+	double avg_bandwidth, sd_bandwidth;
+	standard_deviation(bandwidth, avg_bandwidth, sd_bandwidth);
+
+	double avg_access_freq, sd_access_freq;
+	standard_deviation(access_freq, avg_access_freq, sd_access_freq);
+
+	//"NodeId, SocketId, TotalMemoryRequest(MiB), NumberOfThreads, AvgTime(S), SDTime, 
+	//Bandwidth(MB/s), SDBandwidth, AvgEnergyUsage(J), SDEnergyUsage, AvgPowerUsage(W), SDPowerUsage, AccessFrequency(line/s), SDAccessFrequency\n"	
+	fprintf(file, "%s,%s,%f,%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n", node.c_str(), socket.c_str(), memory_request, ncore.c_str(),
+			avg_time, sd_time, avg_bandwidth, sd_bandwidth, avg_energy, sd_energy, avg_power_cons, sd_power_cons, avg_access_freq, sd_access_freq);
 	fflush(file);
 
 	fclose(file);

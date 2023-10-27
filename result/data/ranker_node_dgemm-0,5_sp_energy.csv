@@ -1,0 +1,2 @@
+NodeId,SocketId,CPUId,NumberOfThreads,PowerLimit(W),FLOP,uJ/FLOP,Score
+coop1,-,-,192,112,10987553132473.000000,0.003981,-43741449020.375015

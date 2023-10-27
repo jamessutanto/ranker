@@ -1,5 +1,5 @@
 #include "ranker.h"
-#include "variorum_parser.hpp"
+#include "ranker_aux.hpp"
 
 #include <iostream>
 #include <cstring>
@@ -7,12 +7,14 @@
 #include <string>
 #include <vector>
 #include <sstream>
-#include <iterator>
 #include <sched.h>
 #include <sys/wait.h>
 #include <mpi.h>
 #include <fstream>
 #include <filesystem>
+#include <cmath>
+#include <fcntl.h>
+#include <chrono>
 
 extern "C"
 {
@@ -23,347 +25,189 @@ extern "C"
 
 void run(const std::string &, const std::string &, const std::string &, const int);
 
-int get_socket_power_limit();
-
-int get_node_power_limit();
-
-struct Row
-{
-    std::vector<std::string> columns;
-};
-
-std::istream &operator>>(std::istream &str, Row &data)
-{
-    data.columns.clear();
-
-    std::string line;
-    std::getline(str, line);
-    std::stringstream stream(line);
-    std::string cell;
-
-    while (std::getline(stream, cell, ','))
-        data.columns.push_back(cell);
-
-    return str;
-}
-
-bool compare_rows(const Row &r1, const Row &r2)
-{
-    return std::stod(r1.columns.back()) < std::stod(r2.columns.back());
-}
-
-bool compare_rows_reverse(const Row &r1, const Row &r2)
-{
-    return std::stod(r1.columns.back()) > std::stod(r2.columns.back());
-}
-
-void to_vector(const std::string &filename, std::vector<Row> &local)
-{
-    std::ifstream file;
-    file.open(filename, std::ios::in);
-    if (!file.is_open())
-    {
-        std::cerr << "Error opening file: " << filename << std::endl;
-        MPI_Abort(MPI_COMM_WORLD, 1);
-        return;
-    }
-
-    Row header;
-    file >> header;
-
-    Row row;
-    while (file >> row)
-    {
-        local.push_back(row);
-    }
-
-    file.close();
-}
-
-void combine_dgemm(const std::string &result)
-{
-    std::string run1 = result + "-1.0_all";
-    std::string run2 = result + "-0.7_all";
-    std::string run3 = result + "-0.5_all";
-    std::string run4 = result + "-0.3_all";
-
-    std::vector<Row> v1;
-    std::vector<Row> v2;
-    std::vector<Row> v3;
-    std::vector<Row> v4;
-    to_vector(run1, v1);
-    to_vector(run2, v2);
-    to_vector(run3, v3);
-    to_vector(run4, v4);
-
-    std::string header = "NodeId, SocketId, ThreadId, TotalStaticEnergyUsage(J), TotalTime(S), TotalDynamicEnergyUsage(J)\n";
-
-    std::vector<Row> combined;
-
-    for (size_t i = 0; i < v1.size(); i++)
-    {
-        Row r;
-        r.columns.push_back(v1[i].columns[0]); // NodeId
-        r.columns.push_back(v1[i].columns[1]); // SocketId
-        r.columns.push_back(v1[i].columns[2]); // ThreadId
-
-        double static_energy = stod(v1[i].columns[4]); // StaticEnergy
-        static_energy += stod(v2[i].columns[4]);
-        static_energy += stod(v3[i].columns[4]);
-        static_energy += stod(v4[i].columns[4]);
-        r.columns.push_back(std::to_string(static_energy));
-
-        double time = stod(v1[i].columns[5]); // Time
-        time += stod(v2[i].columns[5]);
-        time += stod(v3[i].columns[5]);
-        time += stod(v4[i].columns[5]);
-        r.columns.push_back(std::to_string(time));
-
-        double dynamic_energy = stod(v1[i].columns[6]); // DynamicEnergy
-        dynamic_energy += stod(v2[i].columns[6]);
-        dynamic_energy += stod(v3[i].columns[6]);
-        dynamic_energy += stod(v4[i].columns[6]);
-        r.columns.push_back(std::to_string(dynamic_energy));
-
-        combined.push_back(r);
-    }
-
-    std::sort(combined.begin(), combined.end(), compare_rows);
-
-    std::ofstream out_stream(result, ios::out | ios::trunc);
-    if (!out_stream)
-    {
-        std::cerr << "Error opening file" << std::endl;
-    }
-
-    out_stream << header;
-
-    for (const Row r : combined)
-    {
-        for (size_t i = 0; i < r.columns.size(); i++)
-        {
-            out_stream << r.columns[i];
-
-            if (i < r.columns.size() - 1)
-                out_stream << ",";
-        }
-        out_stream << "\n";
-    }
-    out_stream.close();
-
-    std::cout << "rank saved in " << result << std::endl;
-}
-
 void rank_dgemm_core(const std::string &result)
 {
-    MPI_Init(NULL, NULL);
+    int powerLimit = get_socket_power_limit();
 
-    int powerLimit;
+    // Do not change the number
+    run("dgemm", "core", result + "-1,0", powerLimit);
 
-    int limit = get_socket_power_limit();
-    std::cout << "Socket power limit is " << limit << std::endl;
+    run("dgemm", "core", result + "-0,7", powerLimit);
 
-    powerLimit = limit;
-    run("dgemm", "core", result + "-1.0", powerLimit);
+    run("dgemm", "core", result + "-0,5", powerLimit);
 
-    powerLimit = static_cast<int>(limit * 0.7);
-    variorum_cap_each_socket_power_limit(powerLimit);
-    std::cout << "Socket power limit set to " << powerLimit << std::endl;
+    run("dgemm", "core", result + "-0,4", powerLimit);
 
-    run("dgemm", "core", result + "-0.7", powerLimit);
+    run("dgemm", "core", result + "-0,3", powerLimit);
 
-    powerLimit = static_cast<int>(limit * 0.5);
-    variorum_cap_each_socket_power_limit(powerLimit);
-    std::cout << "Socket power limit set to " << powerLimit << std::endl;
-
-    run("dgemm", "core", result + "-0.5", powerLimit);
-
-    powerLimit = static_cast<int>(limit * 0.3);
-    variorum_cap_each_socket_power_limit(powerLimit);
-    std::cout << "Socket power limit set to " << powerLimit << std::endl;
-
-    run("dgemm", "core", result + "-0.3", powerLimit);
-
-    variorum_cap_each_socket_power_limit(limit);
-    std::cout << "Socket power limit set back to " << limit << std::endl;
-
-    MPI_Barrier(MPI_COMM_WORLD);
-    MPI_Finalize();
-
-    combine_dgemm(result);
+    run("dgemm", "core", result + "-0,2", powerLimit);
 }
 
 void rank_dgemm_socket(const std::string &result)
 {
-    MPI_Init(NULL, NULL);
+    int powerLimit = get_socket_power_limit();
 
-    int powerLimit;
+    // Do not change the number
+    run("dgemm", "socket", result + "-1,0", powerLimit);
 
-    int limit = get_socket_power_limit();
-    std::cout << "Socket power limit is " << limit << std::endl;
+/*     run("dgemm", "socket", result + "-0,7", powerLimit);
 
-    powerLimit = limit;
-    run("dgemm", "socket", result + "-1.0", powerLimit);
+    run("dgemm", "socket", result + "-0,5", powerLimit);
 
-    powerLimit = static_cast<int>(limit * 0.7);
-    variorum_cap_each_socket_power_limit(powerLimit);
-    std::cout << "Socket power limit set to " << powerLimit << std::endl;
+    run("dgemm", "socket", result + "-0,4", powerLimit);
 
-    run("dgemm", "socket", result + "-0.7", powerLimit);
+    run("dgemm", "socket", result + "-0,3", powerLimit);
 
-    powerLimit = static_cast<int>(limit * 0.5);
-    variorum_cap_each_socket_power_limit(powerLimit);
-    std::cout << "Socket power limit set to " << powerLimit << std::endl;
-
-    run("dgemm", "socket", result + "-0.5", powerLimit);
-
-    powerLimit = static_cast<int>(limit * 0.3);
-    variorum_cap_each_socket_power_limit(powerLimit);
-    std::cout << "Socket power limit set to " << powerLimit << std::endl;
-
-    run("dgemm", "socket", result + "-0.3", powerLimit);
-
-    variorum_cap_each_socket_power_limit(limit);
-    std::cout << "Socket power limit set back to " << limit << std::endl;
-
-    MPI_Barrier(MPI_COMM_WORLD);
-    MPI_Finalize();
-
-    combine_dgemm(result);
+    run("dgemm", "socket", result + "-0,2", powerLimit); */
 }
 
 void rank_dgemm_node(const std::string &result)
 {
-    MPI_Init(NULL, NULL);
+    int powerLimit = get_node_power_limit();
 
-    int powerLimit;
+    // Do not change the number
+    run("dgemm", "node", result + "-1,0", powerLimit);
 
-    int limit = get_node_power_limit();
-    std::cout << "node power limit is " << limit << std::endl;
+    run("dgemm", "node", result + "-0,7", powerLimit);
 
-    powerLimit = limit;
-    run("dgemm", "node", result + "-1", powerLimit);
+    run("dgemm", "node", result + "-0,5", powerLimit);
 
-    powerLimit = static_cast<int>(limit * 0.7);
-    variorum_cap_best_effort_node_power_limit(powerLimit);
-    std::cout << "node power limit set to " << powerLimit << std::endl;
+    run("dgemm", "node", result + "-0,4", powerLimit);
 
-    run("dgemm", "node", result + "-0.7", powerLimit);
+    run("dgemm", "node", result + "-0,3", powerLimit);
 
-    powerLimit = static_cast<int>(limit * 0.5);
-    variorum_cap_best_effort_node_power_limit(powerLimit);
-    std::cout << "node power limit set to " << powerLimit << std::endl;
-
-    run("dgemm", "node", result + "-0.5", powerLimit);
-
-    powerLimit = static_cast<int>(limit * 0.3);
-    variorum_cap_best_effort_node_power_limit(powerLimit);
-    std::cout << "node power limit set to " << powerLimit << std::endl;
-
-    run("dgemm", "node", result + "-0.3", powerLimit);
-
-    variorum_cap_best_effort_node_power_limit(limit);
-    std::cout << "node power limit set back to " << limit << std::endl;
-
-    MPI_Barrier(MPI_COMM_WORLD);
-    MPI_Finalize();
-
-    combine_dgemm(result);
+    run("dgemm", "node", result + "-0,2", powerLimit);
 }
 
 void rank_stream_socket(const std::string &result)
 {
-    MPI_Init(NULL, NULL);
-
     run("stream", "socket", result, -1);
-
-    MPI_Barrier(MPI_COMM_WORLD);
-    MPI_Finalize();
 }
 
 void rank_stream_node(const std::string &result)
 {
-    MPI_Init(NULL, NULL);
-
     run("stream", "node", result, -1);
-
-    MPI_Barrier(MPI_COMM_WORLD);
-    MPI_Finalize();
 }
 
 void rank_srandom_socket(const std::string &result)
 {
-    MPI_Init(NULL, NULL);
-
     run("srandom", "socket", result, -1);
-
-    MPI_Barrier(MPI_COMM_WORLD);
-    MPI_Finalize();
 }
 
 void rank_srandom_node(const std::string &result)
 {
-    MPI_Init(NULL, NULL);
-
     run("srandom", "node", result, -1);
-
-    MPI_Barrier(MPI_COMM_WORLD);
-    MPI_Finalize();
 }
 
-void calculate_rank(const std::string &) {}
+void calculate_rank(const std::string &level)
+{
+    std::vector<std::string> power = {"1,0", "0,7", "0,5", "0,4", "0,3", "0,2"};
+    for (std::string s : power)
+    {
+        std::string ep = "result/data/ranker_" + level + "_ep_" + s + "_rank.csv";
+        std::string bt = "result/data/ranker_" + level + "_bt_" + s + "_rank.csv";
+        std::string sp = "result/data/ranker_" + level + "_sp_" + s + "_rank.csv";
+    }
+}
+
+int execute(const std::string &command, const std::string &arg1, const std::string &arg2,
+            const std::string &arg3, const std::string &arg4, const std::string &arg5, const std::string &arg6);
 
 void rank_core()
 {
+    if (execute("make", "-C", "./NPB3.4.2/NPB3.4-OMP/", "ep", "CLASS=A", "", "") != 0)
+    {
+        std::cerr << "Failed to compile NAS Parallel EP benchmark" << std::endl;
+        return;
+    }
+
+    if (execute("make", "-C", "./NPB3.4.2/NPB3.4-OMP/", "bt", "CLASS=A", "", "") != 0)
+    {
+        std::cerr << "Failed to compile NAS Parallel EP benchmark" << std::endl;
+        return;
+    }
+
+    if (execute("make", "-C", "./NPB3.4.2/NPB3.4-OMP/", "sp", "CLASS=A", "", "") != 0)
+    {
+        std::cerr << "Failed to compile NAS Parallel EP benchmark" << std::endl;
+        return;
+    }
+
+    MPI_Init(NULL, NULL);
+
     std::filesystem::path cwd = std::filesystem::current_path();
 
-    rank_dgemm_core((cwd / "result/ranker_core_dgemm").string());
+    rank_dgemm_core((cwd / "result/data/ranker_core_dgemm").string());
+
+    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Finalize();
 
     calculate_rank("core");
 }
 
 void rank_socket()
 {
+    if (execute("make", "-C", "./NPB3.4.2/NPB3.4-OMP/", "ep", "CLASS=C", "", "") != 0)
+    {
+        std::cerr << "Failed to compile NAS Parallel EP benchmark" << std::endl;
+        return;
+    }
+
+    if (execute("make", "-C", "./NPB3.4.2/NPB3.4-OMP/", "bt", "CLASS=C", "", "") != 0)
+    {
+        std::cerr << "Failed to compile NAS Parallel EP benchmark" << std::endl;
+        return;
+    }
+
+    if (execute("make", "-C", "./NPB3.4.2/NPB3.4-OMP/", "sp", "CLASS=C", "", "") != 0)
+    {
+        std::cerr << "Failed to compile NAS Parallel EP benchmark" << std::endl;
+        return;
+    }
+    MPI_Init(NULL, NULL);
+
     std::filesystem::path cwd = std::filesystem::current_path();
 
-    // rank_stream_socket(cwd / "result/ranker_socket_stream");
-    //  rank_srandom_socket(cwd / "result/ranker_socket_srandom");
-    rank_dgemm_socket(cwd / "result/ranker_socket_dgemm");
+    rank_stream_socket(cwd / "result/data/ranker_socket_stream");
+    rank_dgemm_socket(cwd / "result/data/ranker_socket_dgemm");
+
+    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Finalize();
 
     calculate_rank("socket");
 }
 
 void rank_node()
 {
+    if (execute("make", "-C", "./NPB3.4.2/NPB3.4-OMP/", "ep", "CLASS=D", "", "") != 0)
+    {
+        std::cerr << "Failed to compile NAS Parallel EP benchmark" << std::endl;
+        return;
+    }
+
+    if (execute("make", "-C", "./NPB3.4.2/NPB3.4-OMP/", "bt", "CLASS=D", "", "") != 0)
+    {
+        std::cerr << "Failed to compile NAS Parallel EP benchmark" << std::endl;
+        return;
+    }
+
+    if (execute("make", "-C", "./NPB3.4.2/NPB3.4-OMP/", "sp", "CLASS=D", "", "") != 0)
+    {
+        std::cerr << "Failed to compile NAS Parallel EP benchmark" << std::endl;
+        return;
+    }
+
+    MPI_Init(NULL, NULL);
+
     std::filesystem::path cwd = std::filesystem::current_path();
 
-    rank_stream_node(cwd / "result/ranker_node_stream");
-    rank_srandom_node(cwd / "result/ranker_node_srandom");
-    rank_dgemm_node(cwd / "result/ranker_node_dgemm");
+    rank_stream_node(cwd / "result/data/ranker_node_stream");
+    rank_dgemm_node(cwd / "result/data/ranker_node_dgemm");
+
+    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Finalize();
 
     calculate_rank("node");
-}
-
-int get_socket_power_limit()
-{
-    char hostname[MPI_MAX_PROCESSOR_NAME];
-    int len;
-    MPI_Get_processor_name(hostname, &len);
-
-    record_power(hostname, "w");
-
-    return socket_power_limit(hostname);
-}
-
-int get_node_power_limit()
-{
-    char hostname[MPI_MAX_PROCESSOR_NAME];
-    int len;
-    MPI_Get_processor_name(hostname, &len);
-
-    record_power(hostname, "w");
-
-    return node_power_limit(hostname);
 }
 
 int init_topo(const char *filename)
@@ -400,27 +244,8 @@ int init_topo(const char *filename)
     return 0;
 }
 
-void change_affinity(const std::vector<int> &cpu)
-{
-    cpu_set_t cpuset;
-
-    // Set affinity only to CPU newAff
-    CPU_ZERO(&cpuset);
-
-    for (int i : cpu)
-    {
-        CPU_SET(i, &cpuset);
-    }
-
-    if (sched_setaffinity(0, sizeof(cpuset), &cpuset) == -1)
-    {
-        std::cerr << "Failed to set CPU affinity" << std::endl;
-        return;
-    }
-}
-
 int execute(const std::string &command, const std::string &arg1, const std::string &arg2,
-            const std::string &arg3, const std::string &arg4, const std::string &arg5)
+            const std::string &arg3, const std::string &arg4, const std::string &arg5, const std::string &arg6)
 {
     pid_t pid = fork();
     if (pid == 0)
@@ -430,8 +255,10 @@ int execute(const std::string &command, const std::string &arg1, const std::stri
             execlp(command.c_str(), command.c_str(), arg1.c_str(), nullptr);
         else if (arg4 == "")
             execlp(command.c_str(), command.c_str(), arg1.c_str(), arg2.c_str(), arg3.c_str(), nullptr);
+        else if (arg5 == "")
+            execlp(command.c_str(), command.c_str(), arg1.c_str(), arg2.c_str(), arg3.c_str(), arg4.c_str(), nullptr);
         else
-            execlp(command.c_str(), command.c_str(), arg1.c_str(), arg2.c_str(), arg3.c_str(), arg4.c_str(), arg5.c_str(), nullptr);
+            execlp(command.c_str(), command.c_str(), arg1.c_str(), arg2.c_str(), arg3.c_str(), arg4.c_str(), arg5.c_str(), arg6.c_str(), nullptr);
 
         // Only executed when execlp failed
         std::cerr << "Failed executing: " << command << std::endl;
@@ -457,25 +284,7 @@ int execute(const std::string &command, const std::string &arg1, const std::stri
     return 0;
 }
 
-void set_omp(const std::vector<int> &cpu)
-{
-    // Transform vector to string for OMP_PLACES
-    std::ostringstream oss;
-    oss << "{";
-    std::move(cpu.begin(), cpu.end() - 1, std::ostream_iterator<int>(oss, ", "));
-    oss << cpu.back();
-    oss << "}";
-
-    // Set OMP to use certain threads only
-    std::string ompPlaces = oss.str();
-    setenv("OMP_PLACES", ompPlaces.c_str(), 1);
-
-    // Set the number of threads for OMP to use
-    std::string ompNumThreads = std::to_string(cpu.size());
-    setenv("OMP_NUM_THREADS", ompNumThreads.c_str(), 1);
-}
-
-void run_stream(const std::vector<int> &cpu, const int array_size, const std::string &hostname,
+void run_stream(const std::vector<int> &cpu, const int array_size, const int cache_line_size, const std::string &hostname,
                 const std::string &sId, const int core, const double idle_power, const std::string &result)
 {
     // Set affinity to current cpu inside this component
@@ -484,58 +293,29 @@ void run_stream(const std::vector<int> &cpu, const int array_size, const std::st
     set_omp(cpu);
 
     // Compile benchmark
-    if (execute("make", "stream", "N=" + std::to_string(array_size), "D=" + hostname, "", "") != 0)
+    if (execute("make", "stream", "N=" + std::to_string(array_size), "D=" + hostname, "", "", "") != 0)
     {
         std::cerr << "Failed to compile benchmark file in " << std::string(hostname) << std::endl;
         return;
     }
 
     // Execute benchmark
-    if (execute("./stream" + hostname, hostname, sId, std::to_string(core).c_str(), std::to_string(idle_power), result) != 0)
+
+    if (execute("./stream" + hostname, hostname, sId, std::to_string(core).c_str(), std::to_string(idle_power), std::to_string(cache_line_size), result) != 0)
     {
         std::cerr << "Failed to run benchmark in " << std::string(hostname) << ". Is the executable there?" << std::endl;
         return;
     }
 
     // Delete executable, so next iteration will have to create again.
-    if (execute("rm", "stream" + hostname, "", "", "", "") != 0)
+    if (execute("rm", "stream" + hostname, "", "", "", "", "") != 0)
     {
         std::cerr << "Failed to delete the executable file stream" << std::string(hostname) << "." << std::endl;
         return;
     }
 }
 
-void run_srandom(const std::vector<int> &cpu, const int array_size, const std::string &hostname,
-                 const std::string &sId, const int core, const double idle_power, const std::string &result)
-{
-    // Set affinity to current cpu inside this component
-    change_affinity(cpu);
-
-    set_omp(cpu);
-
-    // Compile benchmark
-    if (execute("make", "srandom", "N=" + std::to_string(array_size), "D=" + hostname, "", "") != 0)
-    {
-        std::cerr << "Failed to compile benchmark file in " << std::string(hostname) << std::endl;
-        return;
-    }
-
-    // Execute benchmark
-    if (execute("./srandom" + hostname, hostname, sId, std::to_string(core).c_str(), std::to_string(idle_power), result) != 0)
-    {
-        std::cerr << "Failed to run benchmark in " << std::string(hostname) << ". Is the executable there?" << std::endl;
-        return;
-    }
-
-    // Delete executable, so next iteration will have to create again.
-    if (execute("rm", "srandom" + hostname, "", "", "", "") != 0)
-    {
-        std::cerr << "Failed to delete the executable file srandom" << std::string(hostname) << "." << std::endl;
-        return;
-    }
-}
-
-void run_dgemm(const std::vector<int> &cpu, const int array_size, const std::string &hostname,
+void run_dgemm(const std::vector<int> &cpu, const int array_size, const int limit, const std::string &hostname,
                const std::string &sId, const std::string &cId, const double idle_power, const std::string &result)
 {
     // Set affinity to current cpu inside this component
@@ -544,42 +324,91 @@ void run_dgemm(const std::vector<int> &cpu, const int array_size, const std::str
     set_omp(cpu);
 
     // Compile benchmark
-    if (execute("make", "dgemm", "N=" + std::to_string(array_size), "D=" + hostname, "", "") != 0)
+    if (execute("make", "dgemm", "N=" + std::to_string(array_size), "D=" + hostname, "", "", "") != 0)
     {
         std::cerr << "Failed to compile benchmark file in " << std::string(hostname) << std::endl;
         return;
     }
 
     // Execute benchmark
-    if (execute("./dgemm" + hostname, hostname, sId, cId, std::to_string(idle_power), result) != 0)
+    if (execute("./dgemm" + hostname, hostname, sId, cId, std::to_string(idle_power), std::to_string(limit), result) != 0)
     {
         std::cerr << "Failed to run benchmark in " << std::string(hostname) << ". Is the executable there?" << std::endl;
         return;
     }
 
     // Delete executable, so next iteration will have to create again.
-    if (execute("rm", "dgemm" + hostname, "", "", "", "") != 0)
+    if (execute("rm", "dgemm" + hostname, "", "", "", "", "") != 0)
     {
         std::cerr << "Failed to delete the executable file dgemm" << std::string(hostname) << "." << std::endl;
         return;
     }
 }
 
-void calculate_efficiency(const std::string &path, const std::string &final)
+/*
+for memory:
+thread = number of threads
+limit = line size
+
+for cpu:
+thread = threadId,number of threads
+limit = limit multiplier
+*/
+void run_nas(const std::vector<int> &cpu, const std::string &level, const std::string &node, const std::string &socket, const std::string &threads, const int &line_size, const std::string benchmark)
 {
-    std::vector<Row> data;
-    to_vector(path, data);
+    std::string filename = "result/data/ranker_" + level + "_" + benchmark + "_" + node + ".csv";
 
-    std::string header = "NodeId, SocketId, MemoryUsage(MiB), Time(S), Bandwidth(MB/s), DramPowerUsage(W), AccessFrequency, DramEfficiency(MB/J)\n";
+    // Set affinity
+    change_affinity(cpu);
 
-    std::ofstream out_stream(final, ios::out | ios::trunc);
-    if (!out_stream)
+    set_omp(cpu);
+
+    std::string events = "-e LLC-load-misses,LLC-store-misses,fp_arith_inst_retired.scalar_double";
+
+    std::string cmd;
+    if (level == "core")
+    { // Only FLOP, because there is no core level in memory
+        events = "-e fp_arith_inst_retired.scalar_double";
+
+        std::string cpuId = threads.substr(0, threads.find(","));
+        for (char &c : cpuId)
+        {
+            if (c == ';')
+                c = ',';
+        }
+
+        if (benchmark == "ep")
+            cmd = "perf stat -a -C " + cpuId + " " + events + " ./NPB3.4.2/NPB3.4-OMP/bin/" + benchmark + ".A.x 2> " + node + "_tmp.txt";
+        else
+            cmd = "perf stat -a -C " + cpuId + " " + events + " ./NPB3.4.2/NPB3.4-OMP/bin/" + benchmark + ".A.x 2> " + node + "_tmp.txt";
+    }
+    else if (level == "socket")
     {
-        std::cerr << "Error opening file" << std::endl;
-        MPI_Abort(MPI_COMM_WORLD, 1);
+        if (benchmark == "ep")
+            cmd = "perf stat --all-cpus --per-socket " + events + " ./NPB3.4.2/NPB3.4-OMP/bin/" + benchmark + ".C.x 2> " + node + "_tmp.txt";
+        else
+            cmd = "perf stat --all-cpus --per-socket " + events + " ./NPB3.4.2/NPB3.4-OMP/bin/" + benchmark + ".C.x 2> " + node + "_tmp.txt";
+    }
+    else
+    {
+        if (benchmark == "ep")
+            cmd = "perf stat --all-cpus " + events + " ./NPB3.4.2/NPB3.4-OMP/bin/" + benchmark + ".D.x 2> " + node + "_tmp.txt";
+        else
+            cmd = "perf stat --all-cpus " + events + " ./NPB3.4.2/NPB3.4-OMP/bin/" + benchmark + ".D.x 2> " + node + "_tmp.txt";
     }
 
-    out_stream << header;
+    if (execute("sh", "-c", cmd, "", "", "", "") != 0)
+    {
+        std::cerr << "Failed to run " + benchmark + " benchmark under perf in " << node << std::endl;
+        return;
+    }
+
+    if (level == "core")
+        write_nas_core_result(filename, node + "_tmp.txt", node, socket, threads);
+    else
+        write_nas_result(filename, node + "_tmp.txt", node, socket, threads, line_size);
+
+    return;
 }
 
 void run(const std::string &benchmark, const std::string &level, const std::string &result, const int limit)
@@ -590,7 +419,7 @@ void run(const std::string &benchmark, const std::string &level, const std::stri
     int len;
     MPI_Get_processor_name(hostname, &len);
 
-    std::string filename = "result/topology_" + std::string(hostname) + ".xml";
+    std::string filename = "result/topo/topology_" + std::string(hostname) + ".xml";
 
     init_topo(filename.c_str());
 
@@ -622,21 +451,15 @@ void run(const std::string &benchmark, const std::string &level, const std::stri
     std::vector<Component *> *comps = new std::vector<Component *>();
     topo->FindAllSubcomponentsByType(comps, ss_comp);
 
-    // SocketID and ThreadId
+    // SocketID
     std::string sId = "-";
-    std::string cId = "-";
+
+    int cache_line_size;
 
     std::string result_hostname = result + "_" + std::string(hostname);
 
-    // Get Idle power usage
-
-    record_power(result + "_idle", "w");
-    record_power(result + "_idle", "w");
-    sleep(2);
-    record_power(result + "_idle", "a");
-
-    // pkg0_joules, dram0_watts, pkg1_joules, dram1_watts, ...
-    std::vector<double> idle(parse_poll_power_idle(result + "_idle"));
+    bool idle_power_recorded = false;
+    std::vector<double> idle;
 
     // Iterate through all the subcomponents
     for (Component *comp : *comps)
@@ -649,8 +472,13 @@ void run(const std::string &benchmark, const std::string &level, const std::stri
                 continue;
 
             sId = std::to_string(chip->GetId());
-            // L3 Cache size
-            array_size = static_cast<Cache *>(chip->GetChildByType(SYS_SAGE_COMPONENT_CACHE))->GetCacheSize();
+
+            std::vector<Component *> *cache = new std::vector<Component *>();
+            chip->GetSubcomponentsByType(cache, SYS_SAGE_COMPONENT_CACHE);
+
+            cache_line_size = static_cast<Cache *>(cache->front())->GetCacheLineSize();
+            // For core benchmarking use half the capacity
+            array_size = static_cast<Cache *>(cache->front())->GetCacheSize() / 8;
         }
         else if (ss_comp == SYS_SAGE_COMPONENT_CHIP)
         {
@@ -658,8 +486,13 @@ void run(const std::string &benchmark, const std::string &level, const std::stri
                 continue;
 
             sId = std::to_string(comp->GetId());
-            // L3 Cache size (Cache size in bytes *2/8 (size of double))
-            array_size = static_cast<Cache *>(comp->GetChildByType(SYS_SAGE_COMPONENT_CACHE))->GetCacheSize() / 4;
+
+            std::vector<Component *> *cache = new std::vector<Component *>();
+            comp->GetSubcomponentsByType(cache, SYS_SAGE_COMPONENT_CACHE);
+            cache_line_size = static_cast<Cache *>(cache->front())->GetCacheLineSize();
+
+            // Number of double fit in cache
+            array_size = static_cast<Cache *>(cache->front())->GetCacheSize() / 8;
         }
         else
         {
@@ -671,8 +504,11 @@ void run(const std::string &benchmark, const std::string &level, const std::stri
                 // If chip is socket, add L3 cache size to array_size, if not remove from comp so its threads doesn't get count
                 if (c->GetName() == "socket")
                 {
-                    Chip *socket = static_cast<Chip *>(c);
-                    array_size += static_cast<Cache *>(socket->GetChildByType(SYS_SAGE_COMPONENT_CACHE))->GetCacheSize() / 4;
+                    std::vector<Component *> *cache = new std::vector<Component *>();
+                    c->GetSubcomponentsByType(cache, SYS_SAGE_COMPONENT_CACHE);
+
+                    cache_line_size = static_cast<Cache *>(cache->front())->GetCacheLineSize();
+                    array_size += static_cast<Cache *>(cache->front())->GetCacheSize() / 8;
                 }
                 else
                     comp->RemoveChild(c);
@@ -685,26 +521,24 @@ void run(const std::string &benchmark, const std::string &level, const std::stri
         std::vector<Component *> *threads = new std::vector<Component *>();
         comp->FindAllSubcomponentsByType(threads, SYS_SAGE_COMPONENT_THREAD);
 
-        if (level == "core")
-        {
-            for (size_t i = 0; i < threads->size(); i++)
-            {
-                cId = std::to_string((*threads)[i]->GetId());
-
-                if (i != threads->size() - 1)
-                    cId.append(";");
-            }
-        }
-
-        // CPUs to be tested.
-        std::vector<int> cpu(threads->size());
-
         // There is no cpu threads
         if (threads->empty())
             continue;
 
-        if (benchmark != "dgemm")
+         if (benchmark == "stream")
         {
+            // Get Idle power usage
+            if (!idle_power_recorded)
+            {
+                record_power(result_hostname + "_idle", "w");
+                sleep(2);
+                record_power(result_hostname + "_idle", "a");
+
+                // pkg0_watts, dram0_watts, pkg1_watts, dram1_watts, ...
+                idle = parse_poll_power_idle(result_hostname + "_idle");
+
+                idle_power_recorded = true;
+            }
             // calculate idle power
             double idle_power = 0;
             if (sId == "-")
@@ -717,7 +551,7 @@ void run(const std::string &benchmark, const std::string &level, const std::stri
                 idle_power = idle[stoi(sId) * 2 + 1];
             }
 
-            for (size_t i = 1; i <= threads->size(); i++)
+            for (size_t i = 2; i <= threads->size(); i = i + 2)
             {
                 // CPUs to be tested.
                 std::vector<int> cpu(i);
@@ -726,31 +560,87 @@ void run(const std::string &benchmark, const std::string &level, const std::stri
                                [](Component *thread)
                                { return thread->GetId(); });
 
-                if (benchmark == "stream")
-                    run_stream(cpu, array_size * 4, std::string(hostname), sId, i, idle_power, result_hostname + "_" + sId);
-                else if (benchmark == "srandom")
-                    run_srandom(cpu, array_size * 4, std::string(hostname), sId, i, idle_power, result_hostname + "_" + sId);
+                run_stream(cpu, array_size * 4, cache_line_size, std::string(hostname), sId, i, idle_power, result_hostname + "_" + sId + ".csv");
             }
 
-            calculate_efficiency(result_hostname + "_" + sId, result_hostname);
+            // Get the Dynamic energy per line with least square
+            calculate_dram_dynamic(result_hostname + "_" + sId + ".csv", result_hostname + ".csv");
+            // CPUs to be tested.
+            std::vector<int> cpu(threads->size());
+
+            std::transform(threads->begin(), threads->end(), cpu.begin(),
+                           [](Component *thread)
+                           { return thread->GetId(); });
+
+            run_nas(cpu, level, std::string(hostname), sId, "-," + to_string(threads->size()), cache_line_size, "ep");
+
+            run_nas(cpu, level, std::string(hostname), sId, "-," + to_string(threads->size()), cache_line_size, "bt");
+
+            run_nas(cpu, level, std::string(hostname), sId, "-," + to_string(threads->size()), cache_line_size, "sp");
         }
         else
         {
+            //  Get tID
+            std::string tId = "";
+
+            if (level == "core")
+            {
+                for (size_t i = 0; i < threads->size(); i++)
+                {
+                    tId.append(std::to_string((*threads)[i]->GetId()));
+
+                    if (i != threads->size() - 1)
+                        tId.append(";");
+                }
+            }
+            else
+                tId = "-";
+
+            // Get the power multiplier
+            int start = result.find("-");
+            std::string end = result.substr(start + 1, result.size());
+
+            end.replace(1, 1, ".");
+
+            double end_double = stod(end);
+            // Core level start with 20% of the socket power limit
+            if (level == "core")
+            {
+                variorum_cap_each_socket_power_limit(limit * end_double * 0.2);
+                std::cout << "Socket power limit set to " << static_cast<int>(limit * end_double * 0.2) << "W" << std::endl;
+            }
+            else
+            {
+                variorum_cap_each_socket_power_limit(limit * end_double);
+                std::cout << "Socket power limit set to " << static_cast<int>(limit * end_double) << "W" << std::endl;
+            }
+
+            // Get Idle power usage
+            if (!idle_power_recorded)
+            {
+
+                record_power(result_hostname + "_idle", "w");
+                sleep(2);
+                record_power(result_hostname + "_idle", "a");
+
+                // pkg0_watts, dram0_watts, pkg1_watts, dram1_watts, ...
+                idle = parse_poll_power_idle(result_hostname + "_idle");
+
+                idle_power_recorded = true;
+            }
+
             double idle_power = 0;
+
+            array_size = static_cast<int>(sqrt(array_size));
+
             if (sId == "-")
             {
                 for (size_t i = 0; i < idle.size(); i = i + 2)
                     idle_power += idle[i];
-
-                array_size = 2048;
             }
             else
             {
                 idle_power = idle[stoi(sId) * 2];
-                if (cId == "-")
-                    array_size = 1024;
-                else
-                    array_size = 512;
             }
 
             // CPUs to be tested.
@@ -760,64 +650,24 @@ void run(const std::string &benchmark, const std::string &level, const std::stri
                            [](Component *thread)
                            { return thread->GetId(); });
 
-            run_dgemm(cpu, array_size, std::string(hostname), sId, cId, idle_power, result_hostname);
+             if (level == "core")
+             {
+                 run_dgemm(cpu, array_size, limit * end_double * 0.2, std::string(hostname), sId, tId, idle_power, result_hostname + ".csv");
+             }
+             else
+             {
+                 run_dgemm(cpu, array_size, limit * end_double, std::string(hostname), sId, tId, idle_power, result_hostname + ".csv");
+             }
+
+            if (end_double == 1.0 && level == "core")
+            {
+                run_nas(cpu, level, std::string(hostname), sId, tId + "," + to_string(threads->size()), 0, "ep");
+            }
+
+            variorum_cap_each_socket_power_limit(limit);
+            std::cout << "Socket power limit set back to " << limit << "W" << std::endl;
         }
-        /*
-                // Get the thread Id
-                std::transform(threads->begin(), threads->end(), cpu.begin(),
-                               [](Component *thread)
-                               { return thread->GetId(); });
-
-                // Set affinity to current cpu inside this component
-                change_affinity(cpu);
-
-                // Transform vector to string for OMP_PLACES
-                std::ostringstream oss;
-                oss << "{";
-                std::move(cpu.begin(), cpu.end() - 1, std::ostream_iterator<int>(oss, ", "));
-                oss << cpu.back();
-                oss << "}";
-
-                // Set OMP to use certain threads only
-                std::string ompPlaces = oss.str();
-                setenv("OMP_PLACES", ompPlaces.c_str(), 1);
-
-                // Set the number of threads for OMP to use
-                std::string ompNumThreads = std::to_string(threads->size());
-                setenv("OMP_NUM_THREADS", ompNumThreads.c_str(), 1);
-
-                if (benchmark == "dgemm")
-                {
-                    array_size = 1024;
-                }
-                else if (benchmark == "stream" || benchmark == "srandom")
-                {
-                    array_size = array_size * 4;
-                    std::cout << array_size << std::endl;
-                }
-
-                // Compile benchmark
-                if (execute("make", benchmark, "N=" + std::to_string(array_size), "D=" + std::string(hostname), "") != 0)
-                {
-                    std::cerr << "Failed to compile benchmark file." << std::endl;
-                    return;
-                }
-
-                // Execute benchmark
-                if (execute("./" + benchmark + std::string(hostname), std::string(hostname), sId, cId, result + "_" + std::string(hostname)) != 0)
-                {
-                    std::cerr << "Failed to run benchmark. Is the executable there?" << std::endl;
-                    return;
-                }
-
-                // Delete executable, so next iteration will have to create again.
-                if (execute("rm", benchmark + std::string(hostname), "", "", "") != 0)
-                {
-                    std::cerr << "Failed to delete the executable file " << std::string(hostname) << "." << std::endl;
-                    return;
-                } */
-
-        delete threads;
+         delete threads;
     }
 
     delete comps;
@@ -826,63 +676,132 @@ void run(const std::string &benchmark, const std::string &level, const std::stri
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
 
+    // Get all hostnames
     char all_hostnames[mpi_size][MPI_MAX_PROCESSOR_NAME];
     MPI_Gather(hostname, MPI_MAX_PROCESSOR_NAME, MPI_CHAR, all_hostnames, MPI_MAX_PROCESSOR_NAME, MPI_CHAR, 0, MPI_COMM_WORLD);
-
-    std::vector<Row> final_data;
-
-    for (char *c : all_hostnames)
-    {
-        to_vector(result + "_" + std::string(c), final_data);
-    }
 
     // Sort and write the data
     if (mpi_rank == 0)
     {
-        std::string header;
+        std::vector<Row> final_data;
+        std::vector<Row> ep_data;
+        std::vector<Row> bt_data;
+        std::vector<Row> sp_data;
+        std::vector<Row> nolimit_data;
+
+        for (char *c : all_hostnames)
+        {
+            to_vector(result + "_" + std::string(c) + ".csv", final_data);
+            to_vector("result/data/ranker_" + level + "_ep_" + std::string(c) + ".csv", ep_data);
+            to_vector("result/data/ranker_" + level + "_bt_" + std::string(c) + ".csv", bt_data);
+            to_vector("result/data/ranker_" + level + "_sp_" + std::string(c) + ".csv", sp_data);
+
+            // Get the peak performance for util
+            if (benchmark == "dgemm")
+                to_vector("result/data/ranker_" + level + "_dgemm-1,0_" + std::string(c) + ".csv", nolimit_data);
+            else if (benchmark == "stream")
+                to_vector(result + "_" + std::string(c) + ".csv", nolimit_data);
+        }
+
+        // Calculate and rank based on throughput
+
+        std::string header_e;
+        std::string header_t;
 
         if (benchmark == "dgemm")
         {
-            header = "NodeId, SocketId, ThreadId, PowerLimit(W), StaticEnergyUsage(J), Time(S), DynamicEnergyUsage(J)\n";
+            header_e = "NodeId,SocketId,CPUId,NumberOfThreads,PowerLimit(W),FLOP,uJ/FLOP,Score\n";
+            header_t = "NodeId,SocketId,CPUId,NumberOfThreads,PowerLimit(W),FLOPS(Job),PeakFLOPS,Utility,Throughput(FLOPS),Score\n";
         }
-        else if (benchmark == "stream" || benchmark == "srandom")
+        else if (benchmark == "stream")
         {
-            std::sort(final_data.begin(), final_data.end(), compare_rows_reverse);
-            header = "NodeId, SocketId, ThreadId, MemoryUsage(MiB), Time(S), Bandwidth(MB/s), DramPowerUsage(W), AccessFrequency, DramEfficiency(MB/J)\n";
-        }
-
-        std::ofstream out_stream(result + "_all", ios::out | ios::trunc);
-        if (!out_stream)
-        {
-            std::cerr << "Error opening file" << std::endl;
-            MPI_Abort(MPI_COMM_WORLD, 1);
+            header_e = "NodeId,SocketId,LLCMisses,DynamicEnergyPerLine(uJ/line),Score\n";
+            header_t = "NodeId,SocketId,PowerLimit(W),Bandwidth(Job),PeakBandwidth,Utility,Throughput(MB/s),Score\n";
         }
 
-        out_stream << header;
-        for (const Row r : final_data)
+        for (int i = 0; i < 3; i++)
         {
-            for (size_t i = 0; i < 3; i++)
+
+            std::string suffix_e;
+            std::string suffix_t;
+
+            std::vector<std::vector<Row>> throughput_data;
+            std::vector<Row> efficiency_data;
+
+            if (i == 0)
             {
-                out_stream << r.columns[i] << ",";
+                suffix_e = "_ep_energy.csv";
+                suffix_t = "_ep_throughput.csv";
+                calculate_score(efficiency_data, throughput_data, final_data, nolimit_data, ep_data, benchmark);
+            }
+            else if (i == 1)
+            {
+                suffix_e = "_bt_energy.csv";
+                suffix_t = "_bt_throughput.csv";
+                calculate_score(efficiency_data, throughput_data, final_data, nolimit_data, bt_data, benchmark);
+            }
+            else
+            {
+                suffix_e = "_sp_energy.csv";
+                suffix_t = "_sp_throughput.csv";
+                calculate_score(efficiency_data, throughput_data, final_data, nolimit_data, sp_data, benchmark);
             }
 
-            if (limit != -1)
-                out_stream << limit << ",";
-
-            for (size_t i = 3; i < r.columns.size(); i++)
+            // Score based on througput
+            for (size_t j = 0; j < throughput_data.size(); j++)
             {
-                out_stream << r.columns[i];
+                std::string path = result + (benchmark == "stream" ? to_string(j + 1) : "") + suffix_t;
+                std::ofstream out_stream_t(path, ios::out | ios::trunc);
+                if (!out_stream_t)
+                {
+                    std::cerr << "Error opening file" << std::endl;
+                    MPI_Abort(MPI_COMM_WORLD, 1);
+                }
 
-                if (i < r.columns.size() - 1)
-                    out_stream << ",";
+                out_stream_t << header_t;
+                for (const Row r : throughput_data[j])
+                {
+                    for (size_t i = 0; i < r.columns.size(); i++)
+                    {
+                        out_stream_t << r.columns[i];
+
+                        if (i < r.columns.size() - 1)
+                            out_stream_t << ",";
+                    }
+
+                    out_stream_t << "\n";
+                }
+
+                out_stream_t.close();
+
+                std::cout << benchmark << " result saved in " << path << std::endl;
+            }
+            // Score based on efficiency
+            std::ofstream out_stream(result + suffix_e, ios::out | ios::trunc);
+            if (!out_stream)
+            {
+                std::cerr << "Error opening file" << std::endl;
+                MPI_Abort(MPI_COMM_WORLD, 1);
             }
 
-            out_stream << "\n";
+            out_stream << header_e;
+            for (const Row r : efficiency_data)
+            {
+                for (size_t i = 0; i < r.columns.size(); i++)
+                {
+                    out_stream << r.columns[i];
+
+                    if (i < r.columns.size() - 1)
+                        out_stream << ",";
+                }
+
+                out_stream << "\n";
+            }
+
+            out_stream.close();
+
+            std::cout << benchmark << " result saved in " << result << suffix_e << std::endl;
         }
-
-        out_stream.close();
-
-        std::cout << benchmark << " result saved in " << result << std::endl;
     }
 
     MPI_Barrier(MPI_COMM_WORLD);

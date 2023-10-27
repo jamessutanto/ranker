@@ -1,0 +1,2 @@
+NodeId,SocketId,CPUId,NumberOfThreads,CacheLineSize(B),Time(S),LLCMisses,Bandwidth(MB/s),TotalFLOP,FLOPS
+coop1,-,-,192,64,257.223,109818388727,27324,10987553132473,42716010078

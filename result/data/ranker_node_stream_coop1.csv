@@ -1,0 +1,2 @@
+NodeId,SocketId,PeakBandwidth(MB/s),EstimatedMemoryStaticPower(W),DynamicEnergyPerLine(uJ/line),HighestPower(W),BandwidthPerPower((MB/s)/W),Constant
+coop1,-,212725,404.008,0.0657267,645.648,939.121,-374919

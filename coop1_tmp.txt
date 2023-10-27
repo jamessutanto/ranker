@@ -1,0 +1,9 @@
+
+ Performance counter stats for 'system wide':
+
+    89.294.524.600      LLC-load-misses                                             
+    20.523.864.127      LLC-store-misses                                            
+10.987.553.132.473      fp_arith_inst_retired.scalar_double                                   
+
+     257,223301340 seconds time elapsed
+

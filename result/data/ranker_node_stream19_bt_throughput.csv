@@ -1,0 +1,2 @@
+NodeId,SocketId,PowerLimit(W),Bandwidth(Job),PeakBandwidth,Utility,Throughput(MB/s),Score
+coop1,-,584,13676.800000,212725.000000,0.064293,173527.664000,0.064293

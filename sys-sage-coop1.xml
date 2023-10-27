@@ -1,0 +1,802 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sys-sage>
+  <components>
+    <Topology id="0" name="sys-sage Topology" addr="0x1df5a30">
+      <Node id="0" name="Node" addr="0x1f78f20">
+        <Chip id="0" name="socket" addr="0x1f71970" vendor="GenuineIntel" model="Intel(R) Xeon(R) Platinum 8360H CPU @ 3.00GHz">
+          <NUMA id="0" name="Numa" addr="0x1d8e580" size="201387196416">
+            <Cache id="7" name="Cache" addr="0x1f71af0" cache_level="3" cache_size="34603008" cache_associativity_ways="11" cache_line_size="64">
+              <Cache id="6" name="Cache" addr="0x1f71c00" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="5" name="Cache" addr="0x1f71d10" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="0" name="Core" addr="0x1f71e00">
+                    <HW_thread id="0" name="HW_thread" addr="0x1f71ee0"/>
+                    <HW_thread id="96" name="HW_thread" addr="0x1f71fc0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="11" name="Cache" addr="0x1f720a0" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="10" name="Cache" addr="0x1f72190" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="1" name="Core" addr="0x1f72280">
+                    <HW_thread id="1" name="HW_thread" addr="0x1f72360"/>
+                    <HW_thread id="97" name="HW_thread" addr="0x1f72440"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="15" name="Cache" addr="0x1f72520" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="14" name="Cache" addr="0x1f72610" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="2" name="Core" addr="0x1f72700">
+                    <HW_thread id="2" name="HW_thread" addr="0x1f727c0"/>
+                    <HW_thread id="98" name="HW_thread" addr="0x1f728a0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="19" name="Cache" addr="0x1f72980" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="18" name="Cache" addr="0x1f72a70" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="3" name="Core" addr="0x1f72b60">
+                    <HW_thread id="3" name="HW_thread" addr="0x1f72c40"/>
+                    <HW_thread id="99" name="HW_thread" addr="0x1f72d20"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="23" name="Cache" addr="0x1f72e00" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="22" name="Cache" addr="0x1f72ef0" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="4" name="Core" addr="0x1f72fe0">
+                    <HW_thread id="4" name="HW_thread" addr="0x1f730c0"/>
+                    <HW_thread id="100" name="HW_thread" addr="0x1f731a0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="27" name="Cache" addr="0x1f73280" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="26" name="Cache" addr="0x1f73370" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="5" name="Core" addr="0x1f73460">
+                    <HW_thread id="5" name="HW_thread" addr="0x1f73540"/>
+                    <HW_thread id="101" name="HW_thread" addr="0x1f73620"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="31" name="Cache" addr="0x1f73700" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="30" name="Cache" addr="0x1f737f0" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="8" name="Core" addr="0x1f738e0">
+                    <HW_thread id="6" name="HW_thread" addr="0x1f739c0"/>
+                    <HW_thread id="102" name="HW_thread" addr="0x1f73aa0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="35" name="Cache" addr="0x1f73b80" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="34" name="Cache" addr="0x1f73c70" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="9" name="Core" addr="0x1f73d60">
+                    <HW_thread id="7" name="HW_thread" addr="0x1f73e40"/>
+                    <HW_thread id="103" name="HW_thread" addr="0x1f73f20"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="39" name="Cache" addr="0x1f74000" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="38" name="Cache" addr="0x1f74180" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="10" name="Core" addr="0x1f74270">
+                    <HW_thread id="8" name="HW_thread" addr="0x1f74350"/>
+                    <HW_thread id="104" name="HW_thread" addr="0x1f74430"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="43" name="Cache" addr="0x1f74510" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="42" name="Cache" addr="0x1f74600" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="11" name="Core" addr="0x1f746f0">
+                    <HW_thread id="9" name="HW_thread" addr="0x1f747d0"/>
+                    <HW_thread id="105" name="HW_thread" addr="0x1f748b0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="47" name="Cache" addr="0x1f74990" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="46" name="Cache" addr="0x1f74a80" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="12" name="Core" addr="0x1f74b70">
+                    <HW_thread id="10" name="HW_thread" addr="0x1f74c50"/>
+                    <HW_thread id="106" name="HW_thread" addr="0x1f74d30"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="51" name="Cache" addr="0x1f74e10" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="50" name="Cache" addr="0x1f74f00" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="13" name="Core" addr="0x1f74ff0">
+                    <HW_thread id="11" name="HW_thread" addr="0x1f750d0"/>
+                    <HW_thread id="107" name="HW_thread" addr="0x1f751b0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="55" name="Cache" addr="0x1f75290" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="54" name="Cache" addr="0x1f75380" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="16" name="Core" addr="0x1f75470">
+                    <HW_thread id="12" name="HW_thread" addr="0x1f75550"/>
+                    <HW_thread id="108" name="HW_thread" addr="0x1f75630"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="59" name="Cache" addr="0x1f75710" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="58" name="Cache" addr="0x1f75800" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="17" name="Core" addr="0x1f758f0">
+                    <HW_thread id="13" name="HW_thread" addr="0x1f759d0"/>
+                    <HW_thread id="109" name="HW_thread" addr="0x1f75ab0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="63" name="Cache" addr="0x1f75b90" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="62" name="Cache" addr="0x1f75c80" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="18" name="Core" addr="0x1f75d70">
+                    <HW_thread id="14" name="HW_thread" addr="0x1f75e50"/>
+                    <HW_thread id="110" name="HW_thread" addr="0x1f75f30"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="67" name="Cache" addr="0x1f76010" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="66" name="Cache" addr="0x1f76100" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="19" name="Core" addr="0x1f761f0">
+                    <HW_thread id="15" name="HW_thread" addr="0x1f762d0"/>
+                    <HW_thread id="111" name="HW_thread" addr="0x1f763b0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="71" name="Cache" addr="0x1f76490" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="70" name="Cache" addr="0x1f76580" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="20" name="Core" addr="0x1f76670">
+                    <HW_thread id="16" name="HW_thread" addr="0x1f76750"/>
+                    <HW_thread id="112" name="HW_thread" addr="0x1f76830"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="75" name="Cache" addr="0x1f76910" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="74" name="Cache" addr="0x1f76a00" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="21" name="Core" addr="0x1f76af0">
+                    <HW_thread id="17" name="HW_thread" addr="0x1f76bd0"/>
+                    <HW_thread id="113" name="HW_thread" addr="0x1f76cb0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="79" name="Cache" addr="0x1f76d90" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="78" name="Cache" addr="0x1f76e80" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="24" name="Core" addr="0x1f76f70">
+                    <HW_thread id="18" name="HW_thread" addr="0x1f77050"/>
+                    <HW_thread id="114" name="HW_thread" addr="0x1f77130"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="83" name="Cache" addr="0x1f77210" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="82" name="Cache" addr="0x1f77300" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="25" name="Core" addr="0x1f773f0">
+                    <HW_thread id="19" name="HW_thread" addr="0x1f774d0"/>
+                    <HW_thread id="115" name="HW_thread" addr="0x1f775b0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="87" name="Cache" addr="0x1f77690" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="86" name="Cache" addr="0x1f77780" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="26" name="Core" addr="0x1f77870">
+                    <HW_thread id="20" name="HW_thread" addr="0x1f77950"/>
+                    <HW_thread id="116" name="HW_thread" addr="0x1f77a30"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="91" name="Cache" addr="0x1f77b10" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="90" name="Cache" addr="0x1f77c00" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="27" name="Core" addr="0x1f77cf0">
+                    <HW_thread id="21" name="HW_thread" addr="0x1f77dd0"/>
+                    <HW_thread id="117" name="HW_thread" addr="0x1f77eb0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="95" name="Cache" addr="0x1f77f90" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="94" name="Cache" addr="0x1f78080" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="28" name="Core" addr="0x1f78170">
+                    <HW_thread id="22" name="HW_thread" addr="0x1f78250"/>
+                    <HW_thread id="118" name="HW_thread" addr="0x1f78330"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="99" name="Cache" addr="0x1f78410" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="98" name="Cache" addr="0x1f78500" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="29" name="Core" addr="0x1f785f0">
+                    <HW_thread id="23" name="HW_thread" addr="0x1f786d0"/>
+                    <HW_thread id="119" name="HW_thread" addr="0x1f787b0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+            </Cache>
+          </NUMA>
+        </Chip>
+        <Chip id="1" name="socket" addr="0x1f78870" vendor="GenuineIntel" model="Intel(R) Xeon(R) Platinum 8360H CPU @ 3.00GHz">
+          <NUMA id="1" name="Numa" addr="0x1d8e490" size="202925608960">
+            <Cache id="105" name="Cache" addr="0x1e5ac60" cache_level="3" cache_size="34603008" cache_associativity_ways="11" cache_line_size="64">
+              <Cache id="104" name="Cache" addr="0x1e5ad70" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="103" name="Cache" addr="0x1e5ae80" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="0" name="Core" addr="0x1e5af70">
+                    <HW_thread id="24" name="HW_thread" addr="0x1e5b050"/>
+                    <HW_thread id="120" name="HW_thread" addr="0x1e5b130"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="109" name="Cache" addr="0x1e5b210" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="108" name="Cache" addr="0x1e5b300" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="1" name="Core" addr="0x1e5b3f0">
+                    <HW_thread id="25" name="HW_thread" addr="0x1e5b4d0"/>
+                    <HW_thread id="121" name="HW_thread" addr="0x1e5b5b0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="113" name="Cache" addr="0x1e5b690" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="112" name="Cache" addr="0x1e5b780" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="2" name="Core" addr="0x1e5b870">
+                    <HW_thread id="26" name="HW_thread" addr="0x1e5b930"/>
+                    <HW_thread id="122" name="HW_thread" addr="0x1e5ba10"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="117" name="Cache" addr="0x1e5baf0" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="116" name="Cache" addr="0x1e5bbe0" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="3" name="Core" addr="0x1e5bcd0">
+                    <HW_thread id="27" name="HW_thread" addr="0x1e5bdb0"/>
+                    <HW_thread id="123" name="HW_thread" addr="0x1e5be90"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="121" name="Cache" addr="0x1e5bf70" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="120" name="Cache" addr="0x1e5c060" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="4" name="Core" addr="0x1e5c150">
+                    <HW_thread id="28" name="HW_thread" addr="0x1e5c230"/>
+                    <HW_thread id="124" name="HW_thread" addr="0x1e5c310"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="125" name="Cache" addr="0x1e5c3f0" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="124" name="Cache" addr="0x1e5c4e0" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="5" name="Core" addr="0x1e5c5d0">
+                    <HW_thread id="29" name="HW_thread" addr="0x1e5c6b0"/>
+                    <HW_thread id="125" name="HW_thread" addr="0x1e5c790"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="129" name="Cache" addr="0x1e5c870" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="128" name="Cache" addr="0x1e5c960" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="8" name="Core" addr="0x1e5ca50">
+                    <HW_thread id="30" name="HW_thread" addr="0x1e5cb30"/>
+                    <HW_thread id="126" name="HW_thread" addr="0x1e5cc10"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="133" name="Cache" addr="0x1e5ccf0" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="132" name="Cache" addr="0x1e5cde0" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="9" name="Core" addr="0x1e5ced0">
+                    <HW_thread id="31" name="HW_thread" addr="0x1e5cfb0"/>
+                    <HW_thread id="127" name="HW_thread" addr="0x1e5d090"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="137" name="Cache" addr="0x1e5d170" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="136" name="Cache" addr="0x1e5d260" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="10" name="Core" addr="0x1e5d350">
+                    <HW_thread id="32" name="HW_thread" addr="0x1e5d430"/>
+                    <HW_thread id="128" name="HW_thread" addr="0x1e5d510"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="141" name="Cache" addr="0x1e5d5f0" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="140" name="Cache" addr="0x1e5d6e0" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="11" name="Core" addr="0x1e5d7d0">
+                    <HW_thread id="33" name="HW_thread" addr="0x1e5d8b0"/>
+                    <HW_thread id="129" name="HW_thread" addr="0x1e5d990"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="145" name="Cache" addr="0x1e5da70" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="144" name="Cache" addr="0x1e5db60" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="12" name="Core" addr="0x1e5dc50">
+                    <HW_thread id="34" name="HW_thread" addr="0x1e5dd30"/>
+                    <HW_thread id="130" name="HW_thread" addr="0x1e5de10"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="149" name="Cache" addr="0x1e5def0" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="148" name="Cache" addr="0x1e5dfe0" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="13" name="Core" addr="0x1e5e0d0">
+                    <HW_thread id="35" name="HW_thread" addr="0x1e5e1b0"/>
+                    <HW_thread id="131" name="HW_thread" addr="0x1e5e290"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="153" name="Cache" addr="0x1e5e370" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="152" name="Cache" addr="0x1e5e460" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="16" name="Core" addr="0x1e5e550">
+                    <HW_thread id="36" name="HW_thread" addr="0x1e5e630"/>
+                    <HW_thread id="132" name="HW_thread" addr="0x1e5e710"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="157" name="Cache" addr="0x1e5e7f0" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="156" name="Cache" addr="0x1e5e8e0" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="17" name="Core" addr="0x1e5e9d0">
+                    <HW_thread id="37" name="HW_thread" addr="0x1e5eab0"/>
+                    <HW_thread id="133" name="HW_thread" addr="0x1e5eb90"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="161" name="Cache" addr="0x1e5ec70" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="160" name="Cache" addr="0x1e5ed60" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="18" name="Core" addr="0x1e5ee50">
+                    <HW_thread id="38" name="HW_thread" addr="0x1e5ef30"/>
+                    <HW_thread id="134" name="HW_thread" addr="0x1e5f010"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="165" name="Cache" addr="0x1e5f0f0" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="164" name="Cache" addr="0x1e5f1e0" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="19" name="Core" addr="0x1e5f2d0">
+                    <HW_thread id="39" name="HW_thread" addr="0x1e5f3b0"/>
+                    <HW_thread id="135" name="HW_thread" addr="0x1e5f490"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="169" name="Cache" addr="0x1e5f570" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="168" name="Cache" addr="0x1e5f660" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="20" name="Core" addr="0x1e5f750">
+                    <HW_thread id="40" name="HW_thread" addr="0x1e5f830"/>
+                    <HW_thread id="136" name="HW_thread" addr="0x1e5f910"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="173" name="Cache" addr="0x1e5f9f0" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="172" name="Cache" addr="0x1e5fae0" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="21" name="Core" addr="0x1e5fbd0">
+                    <HW_thread id="41" name="HW_thread" addr="0x1e5fcb0"/>
+                    <HW_thread id="137" name="HW_thread" addr="0x1e5fd90"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="177" name="Cache" addr="0x1e5fe70" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="176" name="Cache" addr="0x1e5ff60" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="24" name="Core" addr="0x1e60050">
+                    <HW_thread id="42" name="HW_thread" addr="0x1e60130"/>
+                    <HW_thread id="138" name="HW_thread" addr="0x1e60210"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="181" name="Cache" addr="0x1e602f0" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="180" name="Cache" addr="0x1e603e0" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="25" name="Core" addr="0x1e604d0">
+                    <HW_thread id="43" name="HW_thread" addr="0x1e605b0"/>
+                    <HW_thread id="139" name="HW_thread" addr="0x1e60690"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="185" name="Cache" addr="0x1e60770" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="184" name="Cache" addr="0x1e60860" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="26" name="Core" addr="0x1e60950">
+                    <HW_thread id="44" name="HW_thread" addr="0x1e60a30"/>
+                    <HW_thread id="140" name="HW_thread" addr="0x1e60b10"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="189" name="Cache" addr="0x1e60bf0" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="188" name="Cache" addr="0x1e60ce0" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="27" name="Core" addr="0x1e60dd0">
+                    <HW_thread id="45" name="HW_thread" addr="0x1e60eb0"/>
+                    <HW_thread id="141" name="HW_thread" addr="0x1e60f90"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="193" name="Cache" addr="0x1e61070" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="192" name="Cache" addr="0x1e61160" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="28" name="Core" addr="0x1e61250">
+                    <HW_thread id="46" name="HW_thread" addr="0x1e61330"/>
+                    <HW_thread id="142" name="HW_thread" addr="0x1e61410"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="197" name="Cache" addr="0x1e614f0" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="196" name="Cache" addr="0x1e615e0" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="29" name="Core" addr="0x1e616d0">
+                    <HW_thread id="47" name="HW_thread" addr="0x1e617b0"/>
+                    <HW_thread id="143" name="HW_thread" addr="0x1e61890"/>
+                  </Core>
+                </Cache>
+              </Cache>
+            </Cache>
+          </NUMA>
+        </Chip>
+        <Chip id="2" name="socket" addr="0x1e61950" vendor="GenuineIntel" model="Intel(R) Xeon(R) Platinum 8360H CPU @ 3.00GHz">
+          <NUMA id="2" name="Numa" addr="0x1d8e3a0" size="202925608960">
+            <Cache id="203" name="Cache" addr="0x1e61ab0" cache_level="3" cache_size="34603008" cache_associativity_ways="11" cache_line_size="64">
+              <Cache id="202" name="Cache" addr="0x1e61bc0" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="201" name="Cache" addr="0x1e61cd0" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="0" name="Core" addr="0x1e61dc0">
+                    <HW_thread id="48" name="HW_thread" addr="0x1e61ea0"/>
+                    <HW_thread id="144" name="HW_thread" addr="0x1e61f80"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="207" name="Cache" addr="0x1e62060" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="206" name="Cache" addr="0x1e62150" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="1" name="Core" addr="0x1e62240">
+                    <HW_thread id="49" name="HW_thread" addr="0x1e62320"/>
+                    <HW_thread id="145" name="HW_thread" addr="0x1e62400"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="211" name="Cache" addr="0x1e624e0" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="210" name="Cache" addr="0x1e625d0" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="2" name="Core" addr="0x1e626c0">
+                    <HW_thread id="50" name="HW_thread" addr="0x1e62780"/>
+                    <HW_thread id="146" name="HW_thread" addr="0x1e62860"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="215" name="Cache" addr="0x1e62940" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="214" name="Cache" addr="0x1e62a30" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="3" name="Core" addr="0x1e62b20">
+                    <HW_thread id="51" name="HW_thread" addr="0x1e62c00"/>
+                    <HW_thread id="147" name="HW_thread" addr="0x1e62ce0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="219" name="Cache" addr="0x1e62dc0" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="218" name="Cache" addr="0x1e62eb0" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="4" name="Core" addr="0x1e62fa0">
+                    <HW_thread id="52" name="HW_thread" addr="0x1e63080"/>
+                    <HW_thread id="148" name="HW_thread" addr="0x1e63160"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="223" name="Cache" addr="0x1e63240" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="222" name="Cache" addr="0x1e63330" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="5" name="Core" addr="0x1e63420">
+                    <HW_thread id="53" name="HW_thread" addr="0x1e63500"/>
+                    <HW_thread id="149" name="HW_thread" addr="0x1e635e0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="227" name="Cache" addr="0x1e636c0" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="226" name="Cache" addr="0x1e637b0" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="8" name="Core" addr="0x1e638a0">
+                    <HW_thread id="54" name="HW_thread" addr="0x1e63980"/>
+                    <HW_thread id="150" name="HW_thread" addr="0x1e63a60"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="231" name="Cache" addr="0x1e63b40" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="230" name="Cache" addr="0x1e63c30" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="9" name="Core" addr="0x1e63d20">
+                    <HW_thread id="55" name="HW_thread" addr="0x1e63e00"/>
+                    <HW_thread id="151" name="HW_thread" addr="0x1e63ee0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="235" name="Cache" addr="0x1e63fc0" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="234" name="Cache" addr="0x1e640b0" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="10" name="Core" addr="0x1e641a0">
+                    <HW_thread id="56" name="HW_thread" addr="0x1e64280"/>
+                    <HW_thread id="152" name="HW_thread" addr="0x1e64360"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="239" name="Cache" addr="0x1e64440" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="238" name="Cache" addr="0x1e64530" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="11" name="Core" addr="0x1e64620">
+                    <HW_thread id="57" name="HW_thread" addr="0x1e64700"/>
+                    <HW_thread id="153" name="HW_thread" addr="0x1f79f80"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="243" name="Cache" addr="0x1f7a040" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="242" name="Cache" addr="0x1f7a130" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="12" name="Core" addr="0x1f7a220">
+                    <HW_thread id="58" name="HW_thread" addr="0x1f7a2e0"/>
+                    <HW_thread id="154" name="HW_thread" addr="0x1f7a3a0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="247" name="Cache" addr="0x1f7a460" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="246" name="Cache" addr="0x1f7a550" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="13" name="Core" addr="0x1f7a640">
+                    <HW_thread id="59" name="HW_thread" addr="0x1f7a700"/>
+                    <HW_thread id="155" name="HW_thread" addr="0x1f7a7c0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="251" name="Cache" addr="0x1f7a880" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="250" name="Cache" addr="0x1f7a970" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="16" name="Core" addr="0x1f7aa60">
+                    <HW_thread id="60" name="HW_thread" addr="0x1f7ab20"/>
+                    <HW_thread id="156" name="HW_thread" addr="0x1f7abe0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="255" name="Cache" addr="0x1f7aca0" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="254" name="Cache" addr="0x1f7ad90" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="17" name="Core" addr="0x1f7ae80">
+                    <HW_thread id="61" name="HW_thread" addr="0x1f7af40"/>
+                    <HW_thread id="157" name="HW_thread" addr="0x1f7b000"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="259" name="Cache" addr="0x1f7b0c0" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="258" name="Cache" addr="0x1f7b1b0" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="18" name="Core" addr="0x1f7b2a0">
+                    <HW_thread id="62" name="HW_thread" addr="0x1f7b360"/>
+                    <HW_thread id="158" name="HW_thread" addr="0x1f7b420"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="263" name="Cache" addr="0x1f7b4e0" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="262" name="Cache" addr="0x1f7b5f0" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="19" name="Core" addr="0x1f7b6e0">
+                    <HW_thread id="63" name="HW_thread" addr="0x1f7b7c0"/>
+                    <HW_thread id="159" name="HW_thread" addr="0x1f7b8a0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="267" name="Cache" addr="0x1f7b980" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="266" name="Cache" addr="0x1f7bb80" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="20" name="Core" addr="0x1f7bc70">
+                    <HW_thread id="64" name="HW_thread" addr="0x1f7bd50"/>
+                    <HW_thread id="160" name="HW_thread" addr="0x1f7be30"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="271" name="Cache" addr="0x1f7bf10" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="270" name="Cache" addr="0x1f7c000" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="21" name="Core" addr="0x1f7c0f0">
+                    <HW_thread id="65" name="HW_thread" addr="0x1f7c1d0"/>
+                    <HW_thread id="161" name="HW_thread" addr="0x1f7c2b0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="275" name="Cache" addr="0x1f7c390" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="274" name="Cache" addr="0x1f7c480" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="24" name="Core" addr="0x1f7c570">
+                    <HW_thread id="66" name="HW_thread" addr="0x1f7c650"/>
+                    <HW_thread id="162" name="HW_thread" addr="0x1f7c730"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="279" name="Cache" addr="0x1f7c810" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="278" name="Cache" addr="0x1f7c900" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="25" name="Core" addr="0x1f7c9f0">
+                    <HW_thread id="67" name="HW_thread" addr="0x1f7cad0"/>
+                    <HW_thread id="163" name="HW_thread" addr="0x1f7cbb0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="283" name="Cache" addr="0x1f7cc90" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="282" name="Cache" addr="0x1f7cd80" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="26" name="Core" addr="0x1f7ce70">
+                    <HW_thread id="68" name="HW_thread" addr="0x1f7cf50"/>
+                    <HW_thread id="164" name="HW_thread" addr="0x1f7d030"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="287" name="Cache" addr="0x1f7d110" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="286" name="Cache" addr="0x1f7d200" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="27" name="Core" addr="0x1f7d2f0">
+                    <HW_thread id="69" name="HW_thread" addr="0x1f7d3d0"/>
+                    <HW_thread id="165" name="HW_thread" addr="0x1f7d4b0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="291" name="Cache" addr="0x1f7d590" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="290" name="Cache" addr="0x1f7d680" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="28" name="Core" addr="0x1f7d770">
+                    <HW_thread id="70" name="HW_thread" addr="0x1f7d850"/>
+                    <HW_thread id="166" name="HW_thread" addr="0x1f7d930"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="295" name="Cache" addr="0x1f7da10" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="294" name="Cache" addr="0x1f7db00" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="29" name="Core" addr="0x1f7dbf0">
+                    <HW_thread id="71" name="HW_thread" addr="0x1f7dcd0"/>
+                    <HW_thread id="167" name="HW_thread" addr="0x1f7ddb0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+            </Cache>
+          </NUMA>
+        </Chip>
+        <Chip id="3" name="socket" addr="0x1f7de70" vendor="GenuineIntel" model="Intel(R) Xeon(R) Platinum 8360H CPU @ 3.00GHz">
+          <NUMA id="3" name="Numa" addr="0x1d8e2b0" size="202884284416">
+            <Cache id="301" name="Cache" addr="0x1f7dff0" cache_level="3" cache_size="34603008" cache_associativity_ways="11" cache_line_size="64">
+              <Cache id="300" name="Cache" addr="0x1f7e100" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="299" name="Cache" addr="0x1f7e210" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="0" name="Core" addr="0x1f7e300">
+                    <HW_thread id="72" name="HW_thread" addr="0x1f7e3e0"/>
+                    <HW_thread id="168" name="HW_thread" addr="0x1f7e4c0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="305" name="Cache" addr="0x1f7e5a0" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="304" name="Cache" addr="0x1f7e690" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="1" name="Core" addr="0x1f7e780">
+                    <HW_thread id="73" name="HW_thread" addr="0x1f7e860"/>
+                    <HW_thread id="169" name="HW_thread" addr="0x1f7e940"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="309" name="Cache" addr="0x1f7ea20" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="308" name="Cache" addr="0x1f7eb10" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="2" name="Core" addr="0x1f7ec00">
+                    <HW_thread id="74" name="HW_thread" addr="0x1f7ecc0"/>
+                    <HW_thread id="170" name="HW_thread" addr="0x1f7eda0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="313" name="Cache" addr="0x1f7ee80" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="312" name="Cache" addr="0x1f7ef70" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="3" name="Core" addr="0x1f7f060">
+                    <HW_thread id="75" name="HW_thread" addr="0x1f7f140"/>
+                    <HW_thread id="171" name="HW_thread" addr="0x1f7f220"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="317" name="Cache" addr="0x1f7f300" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="316" name="Cache" addr="0x1f7f3f0" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="4" name="Core" addr="0x1f7f4e0">
+                    <HW_thread id="76" name="HW_thread" addr="0x1f7f5c0"/>
+                    <HW_thread id="172" name="HW_thread" addr="0x1f7f6a0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="321" name="Cache" addr="0x1f7f780" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="320" name="Cache" addr="0x1f7f870" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="5" name="Core" addr="0x1f7f960">
+                    <HW_thread id="77" name="HW_thread" addr="0x1f7fa40"/>
+                    <HW_thread id="173" name="HW_thread" addr="0x1f7fb20"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="325" name="Cache" addr="0x1f7fc00" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="324" name="Cache" addr="0x1f7fcf0" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="8" name="Core" addr="0x1f7fde0">
+                    <HW_thread id="78" name="HW_thread" addr="0x1f7fec0"/>
+                    <HW_thread id="174" name="HW_thread" addr="0x1f7ffa0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="329" name="Cache" addr="0x1f80080" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="328" name="Cache" addr="0x1f80170" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="9" name="Core" addr="0x1f80260">
+                    <HW_thread id="79" name="HW_thread" addr="0x1f80340"/>
+                    <HW_thread id="175" name="HW_thread" addr="0x1f80420"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="333" name="Cache" addr="0x1f80500" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="332" name="Cache" addr="0x1f805f0" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="10" name="Core" addr="0x1f806e0">
+                    <HW_thread id="80" name="HW_thread" addr="0x1f807c0"/>
+                    <HW_thread id="176" name="HW_thread" addr="0x1f808a0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="337" name="Cache" addr="0x1f80980" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="336" name="Cache" addr="0x1f80a70" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="11" name="Core" addr="0x1f80b60">
+                    <HW_thread id="81" name="HW_thread" addr="0x1f80c40"/>
+                    <HW_thread id="177" name="HW_thread" addr="0x1f80d20"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="341" name="Cache" addr="0x1f80e00" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="340" name="Cache" addr="0x1f80ef0" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="12" name="Core" addr="0x1f80fe0">
+                    <HW_thread id="82" name="HW_thread" addr="0x1f810c0"/>
+                    <HW_thread id="178" name="HW_thread" addr="0x1f811a0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="345" name="Cache" addr="0x1f81280" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="344" name="Cache" addr="0x1f81370" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="13" name="Core" addr="0x1f81460">
+                    <HW_thread id="83" name="HW_thread" addr="0x1f81540"/>
+                    <HW_thread id="179" name="HW_thread" addr="0x1f81620"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="349" name="Cache" addr="0x1f81700" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="348" name="Cache" addr="0x1f817f0" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="16" name="Core" addr="0x1f818e0">
+                    <HW_thread id="84" name="HW_thread" addr="0x1f819c0"/>
+                    <HW_thread id="180" name="HW_thread" addr="0x1f81aa0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="353" name="Cache" addr="0x1f81b80" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="352" name="Cache" addr="0x1f81c70" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="17" name="Core" addr="0x1f81d60">
+                    <HW_thread id="85" name="HW_thread" addr="0x1f81e40"/>
+                    <HW_thread id="181" name="HW_thread" addr="0x1f81f20"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="357" name="Cache" addr="0x1f82000" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="356" name="Cache" addr="0x1f820f0" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="18" name="Core" addr="0x1f821e0">
+                    <HW_thread id="86" name="HW_thread" addr="0x1f822c0"/>
+                    <HW_thread id="182" name="HW_thread" addr="0x1f823a0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="361" name="Cache" addr="0x1f82480" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="360" name="Cache" addr="0x1f82570" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="19" name="Core" addr="0x1f82660">
+                    <HW_thread id="87" name="HW_thread" addr="0x1f82740"/>
+                    <HW_thread id="183" name="HW_thread" addr="0x1f82820"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="365" name="Cache" addr="0x1f82900" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="364" name="Cache" addr="0x1f82b00" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="20" name="Core" addr="0x1f82bf0">
+                    <HW_thread id="88" name="HW_thread" addr="0x1f82cd0"/>
+                    <HW_thread id="184" name="HW_thread" addr="0x1f82db0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="369" name="Cache" addr="0x1f82e90" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="368" name="Cache" addr="0x1f82f80" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="21" name="Core" addr="0x1f83070">
+                    <HW_thread id="89" name="HW_thread" addr="0x1f83150"/>
+                    <HW_thread id="185" name="HW_thread" addr="0x1f83230"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="373" name="Cache" addr="0x1f83310" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="372" name="Cache" addr="0x1f83400" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="24" name="Core" addr="0x1f834f0">
+                    <HW_thread id="90" name="HW_thread" addr="0x1f835d0"/>
+                    <HW_thread id="186" name="HW_thread" addr="0x1f836b0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="377" name="Cache" addr="0x1f83790" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="376" name="Cache" addr="0x1f83880" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="25" name="Core" addr="0x1f83970">
+                    <HW_thread id="91" name="HW_thread" addr="0x1f83a50"/>
+                    <HW_thread id="187" name="HW_thread" addr="0x1f83b30"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="381" name="Cache" addr="0x1f83c10" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="380" name="Cache" addr="0x1f83d00" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="26" name="Core" addr="0x1f83df0">
+                    <HW_thread id="92" name="HW_thread" addr="0x1f83ed0"/>
+                    <HW_thread id="188" name="HW_thread" addr="0x1f83fb0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="385" name="Cache" addr="0x1f84090" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="384" name="Cache" addr="0x1f84180" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="27" name="Core" addr="0x1f84270">
+                    <HW_thread id="93" name="HW_thread" addr="0x1f84350"/>
+                    <HW_thread id="189" name="HW_thread" addr="0x1f84430"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="389" name="Cache" addr="0x1f84510" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="388" name="Cache" addr="0x1f84600" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="28" name="Core" addr="0x1f846f0">
+                    <HW_thread id="94" name="HW_thread" addr="0x1f847d0"/>
+                    <HW_thread id="190" name="HW_thread" addr="0x1f848b0"/>
+                  </Core>
+                </Cache>
+              </Cache>
+              <Cache id="393" name="Cache" addr="0x1f84990" cache_level="2" cache_size="1048576" cache_associativity_ways="16" cache_line_size="64">
+                <Cache id="392" name="Cache" addr="0x1f84a80" cache_level="1" cache_size="32768" cache_associativity_ways="8" cache_line_size="64">
+                  <Core id="29" name="Core" addr="0x1f84b70">
+                    <HW_thread id="95" name="HW_thread" addr="0x1f84c50"/>
+                    <HW_thread id="191" name="HW_thread" addr="0x1f84d30"/>
+                  </Core>
+                </Cache>
+              </Cache>
+            </Cache>
+          </NUMA>
+        </Chip>
+      </Node>
+    </Topology>
+  </components>
+  <data-paths/>
+</sys-sage>

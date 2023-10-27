@@ -1,5 +1,4 @@
-#include "dgemm.h"
-#include "variorum_parser.hpp"
+#include "ranker_aux.hpp"
 
 #include <chrono>
 #include <array>
@@ -7,6 +6,8 @@
 #include <iostream>
 #include <string>
 #include <sys/time.h>
+#include <thread>
+#include <atomic>
 
 /*
 A, B    = input matrix (N x N)
@@ -14,13 +15,18 @@ C       = output matrix (N x N)
 alpha   = scaling factor for matrix a
 beta    = scaling factor for matrix c
 */
+#define HLINE "-------------------------------------------------------------\n"
 
 #ifndef N
 #define N 1024
 #endif
 
 #ifndef ALPHA
-#define ALPHA 1.0
+#define ALPHA 1.5
+#endif
+
+#ifndef NTIMES
+#define NTIMES 11
 #endif
 
 static double A[N][N];
@@ -36,6 +42,7 @@ void init_array()
         {
             A[i][j] = ((double)i * j) / N;
             B[i][j] = ((double)i * j) / N;
+            C[i][j] = 0.0;
         }
     }
 }
@@ -49,11 +56,10 @@ double mysecond()
     return ((double)tp.tv_sec + (double)tp.tv_usec * 1.e-6);
 }
 
-std::pair<double, double> d_main(const std::string &node, const std::string &socket)
+void d_main(const std::string &node, const std::string &socket, std::vector<double> &time, std::vector<double> &energy, std::vector<double> &power)
 {
     int t;
     std::cout << "Array size: " << N << std::endl;
-    std::array<double, 3> time, energy;
 
 #ifdef _OPENMP
     printf(HLINE);
@@ -78,54 +84,51 @@ std::pair<double, double> d_main(const std::string &node, const std::string &soc
 
     init_array();
 
-    for (int k = 0; k < 3; k++)
+    for (int iter = 0; iter < NTIMES; iter++)
     {
         record_power("dgemm_" + node, "w");
-        time[k] = mysecond();
+
+        double clock = mysecond();
+
 #pragma omp parallel for
         for (int i = 0; i < N; i++)
         {
             for (int j = 0; j < N; j++)
             {
-                C[i][j] = 0;
-
                 for (int k = 0; k < N; k++)
                 {
                     C[i][j] += ALPHA * A[i][k] * B[k][j];
                 }
             }
         }
-        time[k] = mysecond() - time[k];
-        record_power("dgemm_" + node, "a");
-        energy[k] = parse_poll_power_pkg("dgemm_" + node, socket);
-    }
-    double avgtime = 0;
-    double usage = 0;
-    for (int k = 0; k < 3; k++)
-    {
-        avgtime += time[k];
-        usage += energy[k];
-    }
-    avgtime = avgtime / 3;
-    usage = usage / 3;
 
-    return std::make_pair(avgtime, usage);
+        clock = mysecond() - clock;
+        time.push_back(clock);
+
+        record_power("dgemm_" + node, "a");
+
+        std::pair<double, double> parse = parse_poll_power_pkg("dgemm_" + node, socket);
+        energy.push_back(parse.first);
+        power.push_back(parse.second);
+    }
+    return;
 }
 
 int main(int argc, char *argv[])
 {
-    if (argc < 5)
+    if (argc < 7)
     {
-        std::cerr << "Need argument : <Node Id> <Socket Id> <Core Id> <Idle Power> <result file path>" << std::endl;
+        std::cerr << "Need argument : <Node Id> <Socket Id> <Core Id> <Idle Power> <Power limit> <result file path>" << std::endl;
         return 1;
     }
 
     std::string node = argv[1];
     std::string socket = argv[2];
     std::string core = argv[3];
+    std::string power_limit = argv[5];
 
     // Create csv file for the result
-    FILE *file = fopen(argv[5], "a");
+    FILE *file = fopen(argv[6], "a");
     if (file == NULL)
     {
         std::cerr << "Error opening file." << std::endl;
@@ -138,18 +141,64 @@ int main(int argc, char *argv[])
     // print header if not printed yet
     if (ftell(file) == 0)
     {
-        fprintf(file, "NodeId, SocketId, ThreadId, StaticEnergyUsage(J), Time(S), DynamicEnergyUsage(J)\n");
+        fprintf(file, "NodeId,SocketId,CPUId,NumberOfThreads,PowerLimit(W),IdleCPUPower(W),AvgTime(S),SDTime,AvgEnergyUsage(J),SDEnergy,AvgPowerConsumption(W),SDPowerConsumption,TotalFLOP,AvgFLOPS,SDFLOPS,AvguJ/FLOP,SDuJ/FLOP\n");
         fflush(file);
     }
 
     // MAIN
-    record_power("dgemm_" + node, "w");
+    std::vector<double> time, energy, power_cons;
+    int n_threads;
 
-    std::pair<double, double> result = d_main(node, socket);
+#pragma omp parallel
+    {
+#pragma omp master
+        {
+            n_threads = omp_get_num_threads();
+        }
+    }
+    d_main(node, socket, time, energy, power_cons);
 
-    double idle_power = stod(std::string(argv[4])) * result.first;    
+    // Remove first element
+    time.erase(time.begin());
+    energy.erase(energy.begin());
+    power_cons.erase(power_cons.begin());
 
-    fprintf(file, "%s,%s,%s,%f,%f,%f\n", node.c_str(), socket.c_str(), core.c_str(), idle_power, result.first, result.second - idle_power);
+    // Time
+    double avg_time, sd_time;
+    standard_deviation(time, avg_time, sd_time);
+
+    // Energy
+    double avg_energy, sd_energy;
+    standard_deviation(energy, avg_energy, sd_energy);
+
+    // Power Consumption
+    double avg_power, sd_power;
+    standard_deviation(power_cons, avg_power, sd_power);
+
+    double idle_power = stod(std::string(argv[4]));
+
+    // Flop
+    u_int64_t n64 = static_cast<u_int64_t>(N);
+    u_int64_t flop = 3 * n64 * n64 * n64;
+
+    std::vector<double> flops, jpflop;
+    for (size_t i = 0; i < time.size(); i++)
+    {
+        flops.push_back(flop / time[i]);
+        jpflop.push_back(energy[i] * 1000000 / flop);
+    }
+
+    // FLOPS
+    double avg_flops, sd_flops;
+    standard_deviation(flops, avg_flops, sd_flops);
+
+    // FLOPS/W
+    double avg_jpflop, sd_jpflop;
+    standard_deviation(jpflop, avg_jpflop, sd_jpflop);
+
+    //"NodeId,SocketId,ThreadId,NumberOfThreads,PowerLimit(W),IdleCPUPower(W),AvgTime(S),SDTime,AvgEnergyUsage(J),SDEnergy,AvgPowerConsumption(W),SDPowerConsumption,TotalFLOP,AvgFLOPS,SDFLOPS,AvguJ/FLOP,SDuJ/FLOP\n"
+    fprintf(file, "%s,%s,%s,%d,%s,%f,%f,%f,%f,%f,%f,%f,%lu,%f,%f,%f,%f\n",
+            node.c_str(), socket.c_str(), core.c_str(), n_threads, power_limit.c_str(), idle_power, avg_time, sd_time, avg_energy, sd_energy, avg_power, sd_power, flop, avg_flops, sd_flops, avg_jpflop, sd_jpflop);
     fflush(file);
 
     fclose(file);
